@@ -48,7 +48,21 @@ Counterfeit-Detection-System/
 | AI Service | Python, Flask, PyTorch |
 | Database | MySQL |
 
-## 🚀 Getting Started
+## 🐳 Production-style local deployment
+
+For a clean containerized setup:
+
+```bash
+cp .env.example .env
+# Change the placeholder passwords in .env
+docker compose up --build -d
+```
+
+The backend is exposed on port `8081`. MySQL and runtime uploads use named Docker volumes.
+
+Environment values are loaded from `.env`, which must never be committed.
+
+## 🚀 Development setup
 
 ### 1. Database
 Start MySQL and import the SQL file from the `database/` directory.
