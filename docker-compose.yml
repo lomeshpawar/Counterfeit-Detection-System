@@ -1,0 +1,49 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: counterfeit_db
+      MYSQL_USER: ${MYSQL_USER:-countercheck}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-root-password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ai-service:
+    build: ./ai-service
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+    expose:
+      - "5000"
+
+  backend:
+    build: ./java-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8081
+      DB_URL: jdbc:mysql://mysql:3306/counterfeit_db
+      DB_USERNAME: ${MYSQL_USER:-countercheck}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-change-me}
+      SHOW_SQL: "false"
+      JPA_DDL_AUTO: update
+      UPLOAD_DIR: /data/uploads/
+    ports:
+      - "8081:8081"
+    volumes:
+      - uploads_data:/data/uploads
+
+volumes:
+  mysql_data:
+  uploads_data:
