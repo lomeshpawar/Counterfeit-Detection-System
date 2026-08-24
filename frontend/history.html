@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Prediction History & Audit Log — CounterCheck AI</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Animated Ambient Background Mesh -->
+    <div class="ambient-background" aria-hidden="true">
+        <div class="glow-blob blob-1"></div>
+        <div class="glow-blob blob-2"></div>
+        <div class="glow-blob blob-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+
+            <a href="index.html" class="logo">
+                <div class="logo-badge">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span>Counter<span class="logo-accent">Check</span></span>
+            </a>
+
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <ul class="nav-links" id="navLinks">
+                <li>
+                    <a href="index.html">
+                        <i class="fa-solid fa-house-chimney nav-icon"></i> Home
+                    </a>
+                </li>
+
+                <li>
+                    <a href="upload.html">
+                        <i class="fa-solid fa-wand-magic-sparkles nav-icon"></i> Analyze Product
+                    </a>
+                </li>
+
+                <li>
+                    <a href="history.html" class="active">
+                        <i class="fa-solid fa-clock-rotate-left nav-icon"></i> History
+                    </a>
+                </li>
+
+                <li>
+                    <a href="login.html">
+                        <i class="fa-solid fa-right-to-bracket nav-icon"></i> Login
+                    </a>
+                </li>
+
+                <li>
+                    <a href="register.html" class="btn btn-primary nav-cta">
+                        <span>Get Started</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </li>
+            </ul>
+
+        </div>
+    </nav>
+
+
+    <!-- History Section -->
+    <main class="section history-page-section">
+
+        <div class="container">
+
+            <!-- Page Header -->
+            <div class="history-header-centered">
+                <div class="ai-badge-pill">
+                    <i class="fa-solid fa-clock-rotate-left text-accent"></i>
+                    <span>Enterprise Audit Log</span>
+                </div>
+
+                <h1 class="section-title">
+                    Prediction <span class="gradient-text">History</span>
+                </h1>
+
+                <p class="section-subtitle">
+                    View and search all previous product image analysis records, AI confidence metrics, and verification timestamps.
+                </p>
+            </div>
+
+
+            <!-- Search & Toolbar Wrapper -->
+            <div class="history-toolbar">
+
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input
+                        type="text"
+                        id="historySearch"
+                        class="search-box"
+                        placeholder="Search history by prediction, ID, or confidence..."
+                        onkeyup="searchHistory()"
+                    >
+                </div>
+
+                <div class="history-toolbar-actions">
+                    <a href="upload.html" class="btn btn-primary btn-new-analysis">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>New Analysis</span>
+                    </a>
+                </div>
+
+            </div>
+
+
+            <!-- History Table Glass Card Container -->
+            <div class="history-card-wrapper">
+
+                <div class="table-container">
+
+                    <table id="historyTable">
+
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;"># ID</th>
+                                <th style="width: 130px;"><i class="fa-solid fa-image"></i> Product Image</th>
+                                <th><i class="fa-solid fa-shield-halved"></i> AI Prediction</th>
+                                <th><i class="fa-solid fa-chart-simple"></i> Confidence Score</th>
+                                <th><i class="fa-solid fa-clock"></i> Date & Timestamp</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="historyTableBody">
+                            <!-- Dynamic rows populated via JavaScript -->
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <!-- Professional Empty State -->
+                <div id="noHistoryMessage" class="empty-state-card" style="display: none;">
+                    <div class="empty-state-icon">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <h3>No Prediction History Found</h3>
+                    <p>You have not analyzed any product images yet or no records match your search filter.</p>
+                    <a href="upload.html" class="btn btn-primary btn-empty-cta">
+                        <i class="fa-solid fa-camera"></i>
+                        <span>Analyze First Product</span>
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+
+        <div class="container footer-container">
+
+            <div class="footer-brand">
+                <a href="index.html" class="logo">
+                    <div class="logo-badge">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span>Counter<span class="logo-accent">Check</span></span>
+                </a>
+                <p class="footer-tagline">
+                    AI-Driven Counterfeit Product Identification & Verification Platform.
+                </p>
+                <div class="system-status-pill">
+                    <span class="status-dot"></span>
+                    <span>All Systems Operational (Spring Boot 8081 & AI 5000)</span>
+                </div>
+            </div>
+
+            <div class="footer-links-group">
+                <div class="footer-col">
+                    <h4>Navigation</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="upload.html">Analyze Product</a></li>
+                        <li><a href="history.html">Prediction History</a></li>
+                        <li><a href="login.html">User Login</a></li>
+                        <li><a href="register.html">Register</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Administration</h4>
+                    <ul>
+                        <li><a href="admin-login.html">Admin Portal</a></li>
+                        <li><a href="admin-dashboard.html">System Analytics</a></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <div class="container footer-bottom-container">
+                <p>© 2026 CounterCheck. All rights reserved.</p>
+                <p class="research-tag">MCA Research Work Project — Developed by Lomesh Pawar</p>
+            </div>
+        </div>
+
+    </footer>
+
+
+    <!-- JavaScript Client -->
+    <script src="js/script.js"></script>
+
+</body>
+</html>

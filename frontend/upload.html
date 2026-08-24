@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Analyze Product Image — CounterCheck AI</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Animated Ambient Background Mesh -->
+    <div class="ambient-background" aria-hidden="true">
+        <div class="glow-blob blob-1"></div>
+        <div class="glow-blob blob-2"></div>
+        <div class="glow-blob blob-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+
+            <a href="index.html" class="logo">
+                <div class="logo-badge">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span>Counter<span class="logo-accent">Check</span></span>
+            </a>
+
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <ul class="nav-links" id="navLinks">
+
+                <li>
+                    <a href="index.html">
+                        <i class="fa-solid fa-house-chimney nav-icon"></i> Home
+                    </a>
+                </li>
+
+                <li>
+                    <a href="upload.html" class="active">
+                        <i class="fa-solid fa-magnifying-glass-chart nav-icon"></i> Analyze Product
+                    </a>
+                </li>
+
+                <li>
+                    <a href="history.html">
+                        <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Prediction History
+                    </a>
+                </li>
+
+                <li>
+                    <a href="login.html">
+                        <i class="fa-solid fa-user nav-icon"></i> Login
+                    </a>
+                </li>
+
+                <li>
+                    <a href="admin-dashboard.html">
+                        <i class="fa-solid fa-chart-line nav-icon"></i> Dashboard
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+    </nav>
+
+
+    <!-- Upload Section -->
+    <main class="section upload-page-section">
+
+        <div class="container">
+
+            <div class="upload-container">
+
+                <!-- Top Animated Cyan-Blue Glow Bar -->
+                <div class="card-top-glow"></div>
+
+                <div class="upload-card-header">
+                    <div class="ai-badge-pill">
+                        <i class="fa-solid fa-sparkles text-accent"></i>
+                        <span>AI Vision Inspection Engine</span>
+                    </div>
+
+                    <h1 class="section-title">
+                        Analyze <span class="gradient-text">Product Image</span>
+                    </h1>
+
+                    <p class="section-subtitle">
+                        Upload a crisp image of the product or packaging. Our MobileNetV2 deep learning vision model will inspect high-frequency print & texture features to detect authenticity.
+                    </p>
+                </div>
+
+
+                <form id="uploadForm">
+
+                    <!-- Product Category Dropdown -->
+                    <div class="form-group category-group">
+
+                        <label for="category" class="input-label">
+                            <i class="fa-solid fa-tag label-icon"></i> Product Category <span class="text-danger">*</span>
+                        </label>
+
+                        <div class="select-wrapper">
+                            <select id="category" name="category" class="custom-select" required>
+
+                                <option value="">
+                                    -- Select Product Category --
+                                </option>
+
+                                <option value="electronics">
+                                    📱 Consumer Electronics & Gadgets
+                                </option>
+
+                                <option value="cosmetics">
+                                    💄 Cosmetics & Beauty Products
+                                </option>
+
+                                <option value="clothing">
+                                    👕 Fashion, Apparel & Footwear
+                                </option>
+
+                                <option value="pharmaceutical">
+                                    💊 Pharmaceutical & Medicines
+                                </option>
+
+                                <option value="other">
+                                    📦 General Merchandise / Other
+                                </option>
+
+                            </select>
+                            <i class="fa-solid fa-chevron-down select-arrow"></i>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Image Upload Drag-and-Drop Area -->
+                    <div class="form-group upload-group">
+
+                        <label class="input-label">
+                            <i class="fa-solid fa-image label-icon"></i> Upload Product Image <span class="text-danger">*</span>
+                        </label>
+
+                        <label for="productImage" class="upload-box" id="uploadDropZone" role="button" tabindex="0">
+
+                            <!-- Vertical Scanning Line Animation -->
+                            <div class="upload-scan-line"></div>
+
+                            <div class="upload-icon-wrapper">
+                                <div class="upload-icon">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                </div>
+                                <div class="upload-icon-glow"></div>
+                            </div>
+
+                            <h3 class="upload-box-title">
+                                Click or drag product image here to upload
+                            </h3>
+
+                            <p class="upload-box-subtitle">
+                                Supported image formats: <strong>JPG, JPEG, PNG, WEBP</strong> (Max size: 10MB)
+                            </p>
+
+                            <div class="upload-format-tags">
+                                <span class="format-tag"><i class="fa-solid fa-check"></i> High Res</span>
+                                <span class="format-tag"><i class="fa-solid fa-check"></i> Packaging / Label</span>
+                                <span class="format-tag"><i class="fa-solid fa-check"></i> Texture Detail</span>
+                            </div>
+
+                        </label>
+
+                        <input
+                            type="file"
+                            id="productImage"
+                            name="productImage"
+                            accept="image/*,.jpg,.jpeg,.png,.webp"
+                            style="display: none;"
+                        >
+                    </div>
+
+
+                    <!-- Image Preview Container -->
+                    <div class="image-preview" id="imagePreview" style="display: none;">
+
+                        <div class="preview-header">
+                            <h3><i class="fa-solid fa-eye text-secondary"></i> Uploaded Image Preview</h3>
+                            <span class="preview-status-tag"><i class="fa-solid fa-circle-check text-success"></i> Ready for Analysis</span>
+                        </div>
+
+                        <div class="preview-image-wrapper">
+                            <img
+                                id="previewImage"
+                                src=""
+                                alt="Uploaded Product Preview"
+                            >
+                            <div class="preview-scan-overlay"></div>
+                        </div>
+
+                        <!-- Selected File Metadata Bar -->
+                        <div class="file-info-bar" id="fileInfoBar">
+                            <div class="file-info-details">
+                                <i class="fa-solid fa-file-image text-accent"></i>
+                                <span id="fileNameDisplay" class="file-name-text">filename.jpg</span>
+                                <span id="fileSizeDisplay" class="file-size-tag">(0 KB)</span>
+                            </div>
+
+                            <button type="button" id="removeImageBtn" class="btn-remove-image">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span>Change Image</span>
+                            </button>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Submit Analyze CTA Button -->
+                    <div class="form-submit-container">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary btn-analyze-cta"
+                            id="analyzeButton"
+                        >
+                            <i class="fa-solid fa-wand-magic-sparkles btn-icon"></i>
+                            <span>Analyze Product</span>
+                            <i class="fa-solid fa-arrow-right btn-arrow"></i>
+                        </button>
+
+                    </div>
+
+                </form>
+
+
+                <!-- Analysis Loading Animation State -->
+                <div class="loading" id="loading" style="display: none;">
+
+                    <div class="loading-spinner-wrapper">
+                        <div class="spinner"></div>
+                        <div class="spinner-pulse"></div>
+                    </div>
+
+                    <h3 class="loading-title">
+                        AI Neural Model Processing Image...
+                    </h3>
+
+                    <p class="loading-desc">
+                        Extracting texture features, edge sharpness, & micro-print consistency via Spring Boot & PyTorch.
+                    </p>
+
+                    <div class="loading-progress-bar">
+                        <div class="loading-progress-fill"></div>
+                    </div>
+
+                </div>
+
+
+                <!-- Dynamic Analysis Result Section (Appears after submission without page reload) -->
+                <div class="analysis-result-section" id="analysisResultSection" style="display: none;">
+
+                    <div class="result-card-header">
+                        <div class="result-title-badge">
+                            <i class="fa-solid fa-square-poll-vertical"></i>
+                            <span>AI Detection Report</span>
+                        </div>
+                        <h2>Product Verification Verdict</h2>
+                    </div>
+
+                    <div class="result-grid">
+
+                        <div class="result-image-box">
+                            <h3>Uploaded Image</h3>
+                            <div class="result-img-wrapper">
+                                <img id="resultCardImage" src="" alt="Analyzed Product">
+                            </div>
+                        </div>
+
+                        <div class="result-details-box">
+
+                            <div class="verdict-banner" id="verdictBanner">
+                                <i class="fa-solid" id="verdictIcon"></i>
+                                <span id="verdictText">Genuine Product Verified</span>
+                            </div>
+
+                            <div class="result-metric-row">
+                                <div class="metric-item">
+                                    <span class="metric-label">Confidence Score</span>
+                                    <span class="metric-value" id="resultConfidence">97.5%</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Product Category</span>
+                                    <span class="metric-value" id="resultCategory">Electronics</span>
+                                </div>
+                            </div>
+
+                            <div class="result-metric-row">
+                                <div class="metric-item">
+                                    <span class="metric-label">AI Deep Learning Model</span>
+                                    <span class="metric-value" id="resultModel">MobileNetV2</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Timestamp</span>
+                                    <span class="metric-value" id="resultTimestamp">Just now</span>
+                                </div>
+                            </div>
+
+                            <div class="detection-details-card" id="detectionDetailsCard">
+                                <h4><i class="fa-solid fa-microscope text-accent"></i> Analysis Breakdown</h4>
+                                <p id="detectionDetailsText">Inspection complete.</p>
+                            </div>
+
+                            <div class="result-actions-row">
+                                <button type="button" class="btn btn-primary" onclick="resetAnalysisForm()">
+                                    <i class="fa-solid fa-rotate-left"></i> Analyze Another Product
+                                </button>
+                                <a href="history.html" class="btn btn-outline">
+                                    <i class="fa-solid fa-clock-rotate-left"></i> View Full History
+                                </a>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+
+        <div class="container footer-container">
+
+            <div class="footer-brand">
+                <a href="index.html" class="logo">
+                    <div class="logo-badge">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span>Counter<span class="logo-accent">Check</span></span>
+                </a>
+                <p class="footer-tagline">
+                    AI-Driven Counterfeit Product Identification & Verification Platform.
+                </p>
+                <div class="system-status-pill">
+                    <span class="status-dot"></span>
+                    <span>All Systems Operational (Spring Boot 8081 & AI 5000)</span>
+                </div>
+            </div>
+
+            <div class="footer-links-group">
+                <div class="footer-col">
+                    <h4>Navigation</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="upload.html">Analyze Product</a></li>
+                        <li><a href="history.html">Prediction History</a></li>
+                        <li><a href="login.html">User Login</a></li>
+                        <li><a href="register.html">Register</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Administration</h4>
+                    <ul>
+                        <li><a href="admin-dashboard.html">Admin Dashboard</a></li>
+                        <li><a href="admin-login.html">Admin Portal</a></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <div class="container footer-bottom-container">
+                <p>© 2026 CounterCheck. All rights reserved.</p>
+                <p class="research-tag">MCA Research Work Project — Developed by Lomesh Pawar</p>
+            </div>
+        </div>
+
+    </footer>
+
+
+    <!-- JavaScript -->
+    <script src="js/script.js"></script>
+
+</body>
+</html>

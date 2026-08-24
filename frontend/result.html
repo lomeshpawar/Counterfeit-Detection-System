@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Product Analysis Result — CounterCheck AI</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Animated Ambient Background Mesh -->
+    <div class="ambient-background" aria-hidden="true">
+        <div class="glow-blob blob-1"></div>
+        <div class="glow-blob blob-2"></div>
+        <div class="glow-blob blob-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+
+            <a href="index.html" class="logo">
+                <div class="logo-badge">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span>Counter<span class="logo-accent">Check</span></span>
+            </a>
+
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <ul class="nav-links" id="navLinks">
+
+                <li>
+                    <a href="index.html">
+                        <i class="fa-solid fa-house-chimney nav-icon"></i> Home
+                    </a>
+                </li>
+
+                <li>
+                    <a href="upload.html">
+                        <i class="fa-solid fa-wand-magic-sparkles nav-icon"></i> Analyze Product
+                    </a>
+                </li>
+
+                <li>
+                    <a href="history.html">
+                        <i class="fa-solid fa-clock-rotate-left nav-icon"></i> History
+                    </a>
+                </li>
+
+                <li>
+                    <a href="login.html">
+                        <i class="fa-solid fa-user nav-icon"></i> Login
+                    </a>
+                </li>
+
+                <li>
+                    <a href="admin-dashboard.html">
+                        <i class="fa-solid fa-chart-line nav-icon"></i> Dashboard
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+    </nav>
+
+
+    <!-- Result Section -->
+    <main class="section result-page-section">
+
+        <div class="container">
+
+            <!-- Result Card Container -->
+            <div class="upload-container" id="resultPageCard">
+
+                <!-- Top Glow Accent Bar -->
+                <div class="card-top-glow"></div>
+
+                <div class="result-card-header">
+                    <div class="result-title-badge">
+                        <i class="fa-solid fa-microscope text-accent"></i>
+                        <span>AI Detection Verdict</span>
+                    </div>
+                    <h1 class="section-title">
+                        Product <span class="gradient-text">Verification Report</span>
+                    </h1>
+                </div>
+
+                <!-- Active Result Display Grid -->
+                <div class="result-grid" id="resultGrid">
+
+                    <div class="result-image-box">
+                        <h3><i class="fa-solid fa-image text-accent"></i> Uploaded Product Image</h3>
+                        <div class="result-img-wrapper">
+                            <img
+                                id="resultImage"
+                                src="https://via.placeholder.com/500x400?text=Product+Image"
+                                alt="Analyzed Product Image"
+                            >
+                            <div class="preview-scan-overlay"></div>
+                        </div>
+                    </div>
+
+                    <div class="result-details-box">
+
+                        <!-- Verdict Banner -->
+                        <div class="verdict-banner verdict-genuine" id="verdictBanner">
+                            <i class="fa-solid fa-shield-check" id="verdictIcon"></i>
+                            <span id="verdictText">Genuine Product Verified</span>
+                        </div>
+
+                        <!-- Metric Rows -->
+                        <div class="result-metric-row">
+                            <div class="metric-item">
+                                <span class="metric-label"><i class="fa-solid fa-chart-simple"></i> Confidence Score</span>
+                                <span class="metric-value" id="confidenceScore">97.5%</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label"><i class="fa-solid fa-tag"></i> Product Category</span>
+                                <span class="metric-value" id="resultCategory">Electronics</span>
+                            </div>
+                        </div>
+
+                        <div class="result-metric-row">
+                            <div class="metric-item">
+                                <span class="metric-label"><i class="fa-solid fa-brain"></i> AI Neural Model</span>
+                                <span class="metric-value" id="modelInfo">MobileNetV2 Transfer Learning</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label"><i class="fa-regular fa-clock"></i> Timestamp</span>
+                                <span class="metric-value" id="predictionDate">Just now</span>
+                            </div>
+                        </div>
+
+                        <!-- Technical Breakdown Details -->
+                        <div class="detection-details-card" id="detectionDetailsCard">
+                            <h4><i class="fa-solid fa-atom text-accent"></i> Deep Feature Breakdown</h4>
+                            <p id="detectionDetailsText">Inspection complete. Analysis metrics logged.</p>
+                        </div>
+
+                        <!-- Action Controls -->
+                        <div class="result-actions-row">
+                            <a href="upload.html" class="btn btn-primary">
+                                <i class="fa-solid fa-rotate-left"></i> Analyze Another Product
+                            </a>
+                            <a href="history.html" class="btn btn-outline">
+                                <i class="fa-solid fa-clock-rotate-left"></i> View Full History
+                            </a>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Empty State Display (When no result in localStorage) -->
+                <div id="noResultState" class="empty-state-card" style="display: none; padding: 40px 20px; text-align: center;">
+                    <div class="empty-state-icon" style="font-size: 3rem; color: var(--accent-cyan); margin-bottom: 15px;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <h2>No Recent Product Analysis Found</h2>
+                    <p style="color: var(--text-secondary); max-width: 500px; margin: 10px auto 25px;">
+                        Upload a product image to inspect micro-print details, edge sharpness, and texture feature metrics with our PyTorch MobileNetV2 vision model.
+                    </p>
+                    <a href="upload.html" class="btn btn-primary">
+                        <i class="fa-solid fa-upload"></i> Upload & Analyze Image Now
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+
+        <div class="container footer-container">
+
+            <div class="footer-brand">
+                <a href="index.html" class="logo">
+                    <div class="logo-badge">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span>Counter<span class="logo-accent">Check</span></span>
+                </a>
+                <p class="footer-tagline">
+                    AI-Driven Counterfeit Product Identification & Verification Platform.
+                </p>
+                <div class="system-status-pill">
+                    <span class="status-dot"></span>
+                    <span>All Systems Operational (Spring Boot 8081 & AI 5000)</span>
+                </div>
+            </div>
+
+            <div class="footer-links-group">
+                <div class="footer-col">
+                    <h4>Navigation</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="upload.html">Analyze Product</a></li>
+                        <li><a href="history.html">Prediction History</a></li>
+                        <li><a href="login.html">User Login</a></li>
+                        <li><a href="register.html">Register</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Administration</h4>
+                    <ul>
+                        <li><a href="admin-dashboard.html">Admin Dashboard</a></li>
+                        <li><a href="admin-login.html">Admin Portal</a></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <div class="container footer-bottom-container">
+                <p>© 2026 CounterCheck. All rights reserved.</p>
+                <p class="research-tag">MCA Research Work Project — Developed by Lomesh Pawar</p>
+            </div>
+        </div>
+
+    </footer>
+
+
+    <!-- JavaScript -->
+    <script src="js/script.js"></script>
+
+</body>
+</html>

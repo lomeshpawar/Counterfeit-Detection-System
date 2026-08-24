@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Dashboard — CounterCheck AI</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Animated Ambient Background Mesh -->
+    <div class="ambient-background" aria-hidden="true">
+        <div class="glow-blob blob-1"></div>
+        <div class="glow-blob blob-2"></div>
+        <div class="glow-blob blob-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+
+            <a href="index.html" class="logo">
+                <div class="logo-badge">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span>Counter<span class="logo-accent">Check</span></span>
+            </a>
+
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <ul class="nav-links" id="navLinks">
+
+                <li>
+                    <a href="admin-dashboard.html" class="active">
+                        <i class="fa-solid fa-chart-line nav-icon"></i> Dashboard
+                    </a>
+                </li>
+
+                <li>
+                    <a href="index.html">
+                        <i class="fa-solid fa-house-chimney nav-icon"></i> Home
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#" onclick="adminLogout(); return false;" class="btn btn-outline nav-logout-btn">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+    </nav>
+
+
+    <!-- Admin Dashboard Main Section -->
+    <main class="dashboard admin-dashboard-section">
+
+        <div class="container">
+
+            <!-- Admin Header -->
+            <div class="admin-header">
+
+                <div class="admin-security-pill">
+                    <i class="fa-solid fa-user-shield text-accent"></i>
+                    <span>Protected Admin Portal &nbsp;•&nbsp; Role: <strong>ADMIN</strong></span>
+                </div>
+
+                <h1 class="dashboard-title">
+                    CounterCheck <span class="gradient-text">Administration Dashboard</span>
+                </h1>
+
+                <p class="admin-subtitle">
+                    Real-time monitoring of registered user accounts, AI image predictions, and counterfeit detection statistics.
+                </p>
+
+            </div>
+
+
+            <!-- Statistics Cards Grid -->
+            <div class="stats-grid">
+
+                <!-- Stat 1: Total Users -->
+                <div class="stat-card stat-users">
+
+                    <div class="stat-card-header">
+                        <div class="stat-icon-wrapper icon-bg-blue">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <span class="stat-badge">Users</span>
+                    </div>
+
+                    <div class="stat-card-body">
+                        <h3>Total Registered Users</h3>
+                        <p id="totalUsers">0</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Stat 2: Total Predictions -->
+                <div class="stat-card stat-predictions">
+
+                    <div class="stat-card-header">
+                        <div class="stat-icon-wrapper icon-bg-purple">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <span class="stat-badge">Scans</span>
+                    </div>
+
+                    <div class="stat-card-body">
+                        <h3>Total AI Predictions</h3>
+                        <p id="totalPredictions">0</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Stat 3: Genuine Products -->
+                <div class="stat-card stat-genuine">
+
+                    <div class="stat-card-header">
+                        <div class="stat-icon-wrapper icon-bg-green">
+                            <i class="fa-solid fa-shield-check"></i>
+                        </div>
+                        <span class="stat-badge badge-green">Genuine</span>
+                    </div>
+
+                    <div class="stat-card-body">
+                        <h3>Genuine Products</h3>
+                        <p id="genuineProducts">0</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Stat 4: Counterfeit Products -->
+                <div class="stat-card stat-counterfeit">
+
+                    <div class="stat-card-header">
+                        <div class="stat-icon-wrapper icon-bg-red">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <span class="stat-badge badge-red">Counterfeit</span>
+                    </div>
+
+                    <div class="stat-card-body">
+                        <h3>Counterfeit Products</h3>
+                        <p id="counterfeitProducts">0</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Prediction Management Section -->
+            <section class="admin-management-section">
+
+                <div class="management-header">
+                    <h2>
+                        <i class="fa-solid fa-database text-secondary"></i> All Product Predictions
+                    </h2>
+
+                    <!-- Search Input -->
+                    <div class="admin-search-wrapper">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input
+                            type="text"
+                            id="adminSearch"
+                            class="search-box"
+                            placeholder="Filter predictions by user, status, ID..."
+                            onkeyup="searchAdminPredictions()"
+                        >
+                    </div>
+                </div>
+
+
+                <!-- Prediction Table Glass Container -->
+                <div class="history-card-wrapper">
+
+                    <div class="table-container">
+
+                        <table id="adminPredictionTable">
+
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;"># ID</th>
+                                    <th><i class="fa-solid fa-user"></i> User Account</th>
+                                    <th style="width: 120px;"><i class="fa-solid fa-image"></i> Product Image</th>
+                                    <th><i class="fa-solid fa-shield-halved"></i> AI Verdict</th>
+                                    <th><i class="fa-solid fa-chart-simple"></i> Confidence Score</th>
+                                    <th><i class="fa-solid fa-clock"></i> Date & Timestamp</th>
+                                    <th style="width: 110px;"><i class="fa-solid fa-gear"></i> Action</th>
+                                </tr>
+                            </thead>
+
+
+                            <tbody id="adminPredictionTableBody">
+                                <!-- Dynamic prediction rows populated from database -->
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+
+        <div class="container footer-container">
+
+            <div class="footer-brand">
+                <a href="index.html" class="logo">
+                    <div class="logo-badge">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span>Counter<span class="logo-accent">Check</span></span>
+                </a>
+                <p class="footer-tagline">
+                    AI-Driven Counterfeit Product Identification & Verification Platform.
+                </p>
+                <div class="system-status-pill">
+                    <span class="status-dot"></span>
+                    <span>Admin Portal Protected &nbsp;•&nbsp; Systems Operational</span>
+                </div>
+            </div>
+
+            <div class="footer-links-group">
+                <div class="footer-col">
+                    <h4>Navigation</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="upload.html">Analyze Product</a></li>
+                        <li><a href="history.html">Prediction History</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Administration</h4>
+                    <ul>
+                        <li><a href="admin-dashboard.html">Admin Dashboard</a></li>
+                        <li><a href="#" onclick="adminLogout(); return false;">Admin Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <div class="container footer-bottom-container">
+                <p>© 2026 CounterCheck. All rights reserved.</p>
+                <p class="research-tag">MCA Research Work Project — Developed by Lomesh Pawar</p>
+            </div>
+        </div>
+
+    </footer>
+
+
+    <!-- JavaScript -->
+    <script src="js/script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,527 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Poppins", sans-serif;
+    min-height: 100vh;
+    background: #f4f7fb;
+    color: #1f2937;
+    overflow-x: hidden;
+}
+
+
+/* ============================= */
+/* ANIMATED BACKGROUND */
+/* ============================= */
+
+.background {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    z-index: -1;
+
+    background:
+        radial-gradient(circle at top left, #dbeafe, transparent 40%),
+        radial-gradient(circle at bottom right, #e0e7ff, transparent 40%),
+        #f8fafc;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.5;
+    animation: float 10s infinite ease-in-out alternate;
+}
+
+.blob1 {
+    width: 350px;
+    height: 350px;
+    background: #2563eb;
+    top: 10%;
+    left: -100px;
+}
+
+.blob2 {
+    width: 400px;
+    height: 400px;
+    background: #7c3aed;
+    bottom: -150px;
+    right: -100px;
+    animation-delay: 2s;
+}
+
+.blob3 {
+    width: 250px;
+    height: 250px;
+    background: #38bdf8;
+    top: 40%;
+    right: 15%;
+    animation-delay: 4s;
+}
+
+@keyframes float {
+
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    100% {
+        transform: translate(60px, -50px) scale(1.15);
+    }
+}
+
+
+/* ============================= */
+/* NAVBAR */
+/* ============================= */
+
+.navbar {
+    height: 70px;
+    padding: 0 6%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(15px);
+
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.logo {
+    color: white;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.logo span {
+    color: #60a5fa;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 35px;
+}
+
+.nav-links a {
+    position: relative;
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+.nav-links a:hover,
+.nav-links .active {
+    color: white;
+}
+
+.nav-links .active::after {
+    content: "";
+    position: absolute;
+    height: 3px;
+    width: 100%;
+    left: 0;
+    bottom: -25px;
+
+    background: #3b82f6;
+    border-radius: 10px;
+}
+
+
+/* ============================= */
+/* LOGIN CONTAINER */
+/* ============================= */
+
+.login-container {
+    min-height: calc(100vh - 70px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 40px 20px;
+}
+
+
+/* ============================= */
+/* LOGIN CARD */
+/* ============================= */
+
+.login-card {
+    width: 100%;
+    max-width: 480px;
+
+    padding: 45px;
+
+    background: rgba(255, 255, 255, 0.75);
+
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 24px;
+
+    box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.15);
+
+    animation: cardAppear 0.8s ease forwards;
+}
+
+@keyframes cardAppear {
+
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* LOGIN ICON */
+
+.login-icon {
+    width: 70px;
+    height: 70px;
+
+    margin: 0 auto 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+
+    border-radius: 20px;
+
+    color: white;
+    font-size: 28px;
+
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+
+    animation: iconPulse 2s infinite;
+}
+
+@keyframes iconPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.06);
+    }
+}
+
+
+/* ============================= */
+/* TEXT */
+/* ============================= */
+
+.login-card h1 {
+    text-align: center;
+
+    font-size: 32px;
+    font-weight: 700;
+
+    margin-bottom: 10px;
+
+    color: #1e293b;
+}
+
+.subtitle {
+    text-align: center;
+
+    color: #64748b;
+
+    font-size: 15px;
+    line-height: 1.6;
+
+    margin-bottom: 30px;
+}
+
+
+/* ============================= */
+/* INPUTS */
+/* ============================= */
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: #334155;
+
+    margin-bottom: 8px;
+}
+
+.input-box {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+}
+
+.input-box > i:first-child {
+    position: absolute;
+    left: 18px;
+
+    color: #94a3b8;
+
+    transition: 0.3s;
+}
+
+.input-box input {
+    width: 100%;
+
+    padding: 15px 48px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+
+    outline: none;
+
+    font-family: inherit;
+    font-size: 15px;
+
+    background: rgba(255, 255, 255, 0.7);
+
+    transition: all 0.3s ease;
+}
+
+.input-box input:focus {
+    border-color: #2563eb;
+
+    background: white;
+
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.input-box:focus-within > i:first-child {
+    color: #2563eb;
+}
+
+
+/* PASSWORD EYE */
+
+.toggle-password {
+    position: absolute;
+    right: 18px;
+
+    color: #94a3b8;
+    cursor: pointer;
+
+    transition: 0.3s;
+}
+
+.toggle-password:hover {
+    color: #2563eb;
+}
+
+
+/* ============================= */
+/* REMEMBER / FORGOT */
+/* ============================= */
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 25px;
+
+    font-size: 13px;
+}
+
+.remember {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    color: #64748b;
+
+    cursor: pointer;
+}
+
+.remember input {
+    accent-color: #2563eb;
+}
+
+.options a {
+    color: #2563eb;
+
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.options a:hover {
+    text-decoration: underline;
+}
+
+
+/* ============================= */
+/* LOGIN BUTTON */
+/* ============================= */
+
+.login-btn {
+    width: 100%;
+
+    padding: 16px;
+
+    border: none;
+    border-radius: 12px;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+
+    color: white;
+
+    background:
+        linear-gradient(135deg, #2563eb, #4338ca);
+
+    box-shadow:
+        0 10px 25px rgba(37, 99, 235, 0.3);
+
+    transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 15px 30px rgba(37, 99, 235, 0.4);
+}
+
+.login-btn:active {
+    transform: scale(0.98);
+}
+
+.login-btn i {
+    transition: 0.3s;
+}
+
+.login-btn:hover i {
+    transform: translateX(5px);
+}
+
+
+/* ============================= */
+/* DIVIDER */
+/* ============================= */
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    margin: 28px 0;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+
+    flex: 1;
+
+    height: 1px;
+
+    background: #dbe3ef;
+}
+
+
+/* ============================= */
+/* REGISTER */
+/* ============================= */
+
+.register-text {
+    text-align: center;
+
+    color: #64748b;
+
+    font-size: 14px;
+}
+
+.register-text a {
+    color: #2563eb;
+
+    text-decoration: none;
+    font-weight: 600;
+
+    margin-left: 4px;
+}
+
+.register-text a:hover {
+    text-decoration: underline;
+}
+
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
+@media (max-width: 768px) {
+
+    .navbar {
+        padding: 0 20px;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .login-card {
+        padding: 35px 25px;
+    }
+
+    .login-card h1 {
+        font-size: 27px;
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .login-container {
+        padding: 20px 15px;
+    }
+
+    .login-card {
+        padding: 30px 20px;
+        border-radius: 20px;
+    }
+
+    .options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+}

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CounterCheck — AI-Powered Counterfeit Product Detection</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Animated Ambient Background Mesh -->
+    <div class="ambient-background" aria-hidden="true">
+        <div class="glow-blob blob-1"></div>
+        <div class="glow-blob blob-2"></div>
+        <div class="glow-blob blob-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+
+            <a href="index.html" class="logo">
+                <div class="logo-badge">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span>Counter<span class="logo-accent">Check</span></span>
+            </a>
+
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <ul class="nav-links" id="navLinks">
+                <li>
+                    <a href="index.html" class="active">
+                        <i class="fa-solid fa-house-chimney nav-icon"></i> Home
+                    </a>
+                </li>
+
+                <li>
+                    <a href="upload.html">
+                        <i class="fa-solid fa-wand-magic-sparkles nav-icon"></i> Analyze Product
+                    </a>
+                </li>
+
+                <li>
+                    <a href="history.html">
+                        <i class="fa-solid fa-clock-rotate-left nav-icon"></i> History
+                    </a>
+                </li>
+
+                <li>
+                    <a href="login.html">
+                        <i class="fa-solid fa-right-to-bracket nav-icon"></i> Login
+                    </a>
+                </li>
+
+                <li>
+                    <a href="register.html" class="btn btn-primary nav-cta">
+                        <span>Get Started</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </li>
+            </ul>
+
+        </div>
+    </nav>
+
+
+    <!-- Hero Section -->
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <!-- Hero Left: Pitch & CTAs -->
+            <div class="hero-text">
+
+                <div class="hero-badge">
+                    <span class="badge-pulse"></span>
+                    <i class="fa-solid fa-sparkles"></i> AI Deep Learning Platform 2.0
+                </div>
+
+                <h1>
+                    Detect <span class="gradient-text">Counterfeit Products</span> in Seconds Using AI
+                </h1>
+
+                <p>
+                    Verify product authenticity with precision. CounterCheck utilizes PyTorch deep learning & computer vision texture analysis to distinguish authentic merchandise from sophisticated counterfeits.
+                </p>
+
+                <div class="hero-buttons">
+
+                    <a href="upload.html" class="btn btn-primary btn-hero-primary">
+                        <i class="fa-solid fa-camera-viewfinder"></i>
+                        <span>Analyze Product Now</span>
+                        <i class="fa-solid fa-arrow-right arrow-icon"></i>
+                    </a>
+
+                    <a href="#how-it-works" class="btn btn-outline btn-hero-outline">
+                        <i class="fa-solid fa-play-circle"></i>
+                        <span>How It Works</span>
+                    </a>
+
+                </div>
+
+                <!-- Trust Micro-Stats -->
+                <div class="hero-trust-bar">
+                    <div class="trust-item">
+                        <i class="fa-solid fa-bolt-lightning text-accent"></i>
+                        <span><strong>&lt; 1.5s</strong> Speed</span>
+                    </div>
+                    <div class="trust-divider"></div>
+                    <div class="trust-item">
+                        <i class="fa-solid fa-circle-check text-success"></i>
+                        <span><strong>98.5%</strong> Precision</span>
+                    </div>
+                    <div class="trust-divider"></div>
+                    <div class="trust-item">
+                        <i class="fa-solid fa-microchip text-secondary"></i>
+                        <span><strong>MobileNetV2</strong> Model</span>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- Hero Right: Interactive AI Scanning Showcase Card -->
+            <div class="hero-showcase-wrapper">
+                
+                <div class="hero-showcase-card">
+
+                    <!-- Showcase Card Header -->
+                    <div class="showcase-header">
+                        <div class="showcase-status">
+                            <span class="status-dot"></span>
+                            <span class="status-text">MobileNetV2 Vision Engine</span>
+                        </div>
+                        <span class="showcase-badge">
+                            <i class="fa-solid fa-shield-halved"></i> LIVE SCAN
+                        </span>
+                    </div>
+
+                    <!-- Showcase Visual Scanner -->
+                    <div class="showcase-scanner">
+                        
+                        <!-- Product Visual Hologram -->
+                        <div class="scanner-visual">
+                            <div class="scanner-icon-bg">
+                                <i class="fa-solid fa-shield-virus main-scan-icon"></i>
+                            </div>
+                            
+                            <!-- Laser Scanning Animation Line -->
+                            <div class="scan-laser-line"></div>
+                            
+                            <!-- HUD Corner Markers -->
+                            <div class="hud-corner hud-tl"></div>
+                            <div class="hud-corner hud-tr"></div>
+                            <div class="hud-corner hud-bl"></div>
+                            <div class="hud-corner hud-br"></div>
+
+                            <!-- Target Reticle -->
+                            <div class="hud-reticle"></div>
+                        </div>
+
+                        <!-- Floating HUD AI Detection Tags -->
+                        <div class="hud-tag tag-top">
+                            <i class="fa-solid fa-check text-success"></i>
+                            <span>Texture Integrity: <strong>98.4%</strong></span>
+                        </div>
+
+                        <div class="hud-tag tag-bottom">
+                            <i class="fa-solid fa-fingerprint text-accent"></i>
+                            <span>Micro-Print: <strong>Authentic</strong></span>
+                        </div>
+
+                    </div>
+
+                    <!-- Showcase Card Footer Verdict -->
+                    <div class="showcase-footer">
+                        <div class="verdict-row">
+                            <div class="verdict-label">
+                                <span>Prediction Verdict</span>
+                                <strong>Genuine Product</strong>
+                            </div>
+                            <div class="verdict-score">
+                                <span class="score-badge">96.80% Match</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Animated Progress Bar -->
+                        <div class="score-progress">
+                            <div class="score-progress-bar" style="width: 96.8%;"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Smart Product Verification Workflow Section -->
+    <section class="section workflow-section">
+
+        <div class="container">
+
+            <div class="section-header-centered">
+                <div class="section-pill">
+                    <i class="fa-solid fa-layer-group"></i> Architecture & Workflow
+                </div>
+                <h2 class="section-title">
+                    Smart Product Verification
+                </h2>
+                <p class="section-subtitle">
+                    A robust 3-tier pipeline combining responsive frontend, Spring Boot REST architecture, and PyTorch computer vision.
+                </p>
+            </div>
+
+
+            <div class="workflow-grid">
+
+                <!-- Step Card 1 -->
+                <div class="workflow-card">
+                    <div class="card-step-badge">01</div>
+                    <div class="card-icon-wrapper icon-blue">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <h3>Upload Product Image</h3>
+                    <p>
+                        Upload any high-resolution image of the product (packaging, labels, or logos) in JPG or PNG format.
+                    </p>
+                    <div class="card-feature-pill">
+                        <i class="fa-solid fa-check"></i> Multipart File Ingestion
+                    </div>
+                </div>
+
+                <!-- Pipeline Connector 1 -->
+                <div class="workflow-connector">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+
+                <!-- Step Card 2 -->
+                <div class="workflow-card active-flow">
+                    <div class="card-step-badge">02</div>
+                    <div class="card-icon-wrapper icon-purple">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <h3>AI Neural Analysis</h3>
+                    <p>
+                        Our Flask AI service runs MobileNetV2 feature extraction to evaluate print sharpness, edge variance, and color consistency.
+                    </p>
+                    <div class="card-feature-pill">
+                        <i class="fa-solid fa-brain"></i> Deep Vision Inspection
+                    </div>
+                </div>
+
+                <!-- Pipeline Connector 2 -->
+                <div class="workflow-connector">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+
+                <!-- Step Card 3 -->
+                <div class="workflow-card">
+                    <div class="card-step-badge">03</div>
+                    <div class="card-icon-wrapper icon-green">
+                        <i class="fa-solid fa-certificate"></i>
+                    </div>
+                    <h3>Get Instant Verdict</h3>
+                    <p>
+                        Receive an instantaneous Genuine or Counterfeit verdict with an exact confidence score and detailed audit history.
+                    </p>
+                    <div class="card-feature-pill">
+                        <i class="fa-solid fa-database"></i> MySQL Persistent Record
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- How It Works Section -->
+    <section class="section how-it-works-section" id="how-it-works">
+
+        <div class="container">
+
+            <div class="section-header-centered">
+                <div class="section-pill">
+                    <i class="fa-solid fa-route"></i> Simple 3-Step Process
+                </div>
+                <h2 class="section-title">
+                    How CounterCheck Works
+                </h2>
+                <p class="section-subtitle">
+                    Verify any product in three effortless steps designed for both consumers and enterprise brand protection.
+                </p>
+            </div>
+
+
+            <div class="timeline-container">
+
+                <div class="timeline-card">
+                    <div class="timeline-number-bubble">1</div>
+                    <div class="timeline-body">
+                        <div class="timeline-icon">
+                            <i class="fa-solid fa-camera"></i>
+                        </div>
+                        <h3>1. Capture & Upload</h3>
+                        <p>
+                            Take or select a clear photo of the product label, box, or item packaging and upload it on our secure portal.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="timeline-card">
+                    <div class="timeline-number-bubble">2</div>
+                    <div class="timeline-body">
+                        <div class="timeline-icon">
+                            <i class="fa-solid fa-network-wired"></i>
+                        </div>
+                        <h3>2. Deep AI Inspection</h3>
+                        <p>
+                            The Spring Boot backend securely routes the image to the PyTorch neural network to scan microscopic print patterns.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="timeline-card">
+                    <div class="timeline-number-bubble">3</div>
+                    <div class="timeline-body">
+                        <div class="timeline-icon">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                        </div>
+                        <h3>3. Review Authenticity Result</h3>
+                        <p>
+                            Get an instantaneous authenticity rating with confidence percentage and store the result in your prediction history.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Key Stats & Trust Metrics Banner -->
+    <section class="section stats-banner-section">
+        <div class="container">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-number">98.5%</div>
+                    <div class="metric-title">Verification Accuracy</div>
+                    <div class="metric-desc">Trained on thousands of authentic & fake product features</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number">&lt; 1.5s</div>
+                    <div class="metric-title">Inference Latency</div>
+                    <div class="metric-desc">High-speed REST pipeline for instant results</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number">3-Tier</div>
+                    <div class="metric-title">Modular Architecture</div>
+                    <div class="metric-desc">Spring Boot + Flask + MySQL Microservice stack</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number">100%</div>
+                    <div class="metric-title">Persistent Audit Trail</div>
+                    <div class="metric-desc">Every analysis saved with relational timestamp & metadata</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Call To Action (CTA) Section -->
+    <section class="section cta-section">
+
+        <div class="container">
+
+            <div class="cta-card">
+
+                <div class="cta-glow-bg"></div>
+
+                <div class="cta-content">
+
+                    <div class="cta-icon-wrapper">
+                        <i class="fa-solid fa-shield-check"></i>
+                    </div>
+
+                    <h2>Ready to Analyze Your Product?</h2>
+
+                    <p>
+                        Protect yourself against fake goods. Upload a product image now and get an instant AI-powered authenticity verdict.
+                    </p>
+
+                    <div class="cta-buttons">
+                        <a href="upload.html" class="btn btn-primary btn-cta-primary">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>Start Product Analysis</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                        <a href="register.html" class="btn btn-outline btn-cta-outline">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Create Free Account</span>
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+
+        <div class="container footer-container">
+
+            <div class="footer-brand">
+                <a href="index.html" class="logo">
+                    <div class="logo-badge">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span>Counter<span class="logo-accent">Check</span></span>
+                </a>
+                <p class="footer-tagline">
+                    AI-Driven Counterfeit Product Identification & Verification Platform.
+                </p>
+                <div class="system-status-pill">
+                    <span class="status-dot"></span>
+                    <span>All Systems Operational (Spring Boot 8081 & AI 5000)</span>
+                </div>
+            </div>
+
+            <div class="footer-links-group">
+                <div class="footer-col">
+                    <h4>Navigation</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="upload.html">Analyze Product</a></li>
+                        <li><a href="history.html">Prediction History</a></li>
+                        <li><a href="login.html">User Login</a></li>
+                        <li><a href="register.html">Register</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Administration</h4>
+                    <ul>
+                        <li><a href="admin-login.html">Admin Portal</a></li>
+                        <li><a href="admin-dashboard.html">System Analytics</a></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <div class="container footer-bottom-container">
+                <p>© 2026 CounterCheck. All rights reserved.</p>
+                <p class="research-tag">MCA Research Work Project — Developed by Lomesh Pawar</p>
+            </div>
+        </div>
+
+    </footer>
+
+
+    <!-- JavaScript Client -->
+    <script src="js/script.js"></script>
+
+</body>
+</html>
