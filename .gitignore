@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+
+# Runtime uploads and generated files
+uploads/
+java-backend/uploads/
+
+# Environment and secrets
+.env
+.env.*
+application-local.properties
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
