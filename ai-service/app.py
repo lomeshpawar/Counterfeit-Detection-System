@@ -1,12 +1,5 @@
 """
-============================================================
-CounterCheck AI Microservice - Flask REST API
-============================================================
-Port: 5000
-Endpoints:
-  - GET  /health   : Health check endpoint
-  - POST /predict  : Predict authenticity of uploaded product image
-============================================================
+CounterCheck AI Microservice - Flask REST API.
 """
 
 from flask import Flask, request, jsonify
@@ -15,6 +8,12 @@ from predict import predict_image
 
 app = Flask(__name__)
 CORS(app)
+app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
+
+
+@app.errorhandler(413)
+def request_too_large(_error):
+    return jsonify({"error": "Image exceeds the 10 MB upload limit."}), 413
 
 
 @app.route('/health', methods=['GET'])
@@ -42,10 +41,11 @@ def predict():
         image_bytes = file.read()
         result = predict_image(image_bytes)
         return jsonify(result), 200
-
-    except Exception as e:
-        print(f"[ERROR] Prediction error: {e}")
-        return jsonify({"error": f"Failed to process image: {str(e)}"}), 500
+    except (ValueError, TypeError):
+        return jsonify({"error": "The uploaded file could not be processed as a valid image."}), 400
+    except Exception:
+        app.logger.exception("Prediction failed")
+        return jsonify({"error": "Prediction service failed to process the image."}), 500
 
 
 if __name__ == '__main__':
