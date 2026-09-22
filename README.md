@@ -1,177 +1,188 @@
 # CounterCheck — Counterfeit Product Detection System
 
-> Full-stack research project for AI-assisted product authenticity analysis.
+> Full-stack engineering project for image-based counterfeit product analysis using a Java REST backend and a Python AI service.
 
-CounterCheck is a multi-service web application that lets users submit product images for authenticity analysis and review prediction history. The system separates the web interface, Java backend, Python AI service, and MySQL persistence layer so each component has a clear responsibility.
+CounterCheck demonstrates a practical multi-service workflow: users submit product images through a web interface, the Java/Spring Boot API coordinates application logic and persistence, and a Python service handles image-analysis requests.
 
-## Why this project?
+## Engineering Highlights
 
-Counterfeit products create a difficult verification problem: visual evidence must be processed, an analysis result must be returned through an API, and application data must be stored reliably. This project explores that workflow through a practical full-stack architecture combining Java backend development with an AI service.
+- Spring Boot REST API with Java 17
+- Python/Flask AI service
+- MySQL persistence with JPA/Hibernate
+- Image upload and prediction-history workflow
+- Separate frontend, backend, AI, and database components
+- Docker Compose support for local multi-service development
+- Automated Java/Python validation through GitHub Actions
+- Repository security checks and secret scanning
 
-## Key capabilities
-
-- User registration and login
-- Admin authentication and dashboard
-- Product image upload and AI-assisted analysis
-- Prediction history
-- System statistics and analytics
-- MySQL persistence
-- Docker Compose support for local multi-service deployment
-
-> **Scope note:** The repository documents the capabilities currently present in the codebase. Model accuracy, production performance, and real-world counterfeit-detection effectiveness have not been claimed without measured evidence.
+> **Evidence note:** This repository documents implemented capabilities only. Model accuracy, production readiness, and real-world detection effectiveness are not claimed without measured evaluation.
 
 ## Architecture
 
 ```text
-┌──────────────────────────┐
-│   Frontend               │
-│   HTML / CSS / JavaScript│
-└────────────┬─────────────┘
-             │ HTTP
-             ▼
-┌──────────────────────────┐
-│   Spring Boot API        │
-│   Java / REST            │
-└───────┬───────────┬──────┘
-        │           │
-        │           └──────────────┐
-        ▼                          ▼
-┌──────────────────┐      ┌──────────────────┐
-│ MySQL Database   │      │ Flask AI Service │
-│ Persistence      │      │ Image analysis   │
-└──────────────────┘      └──────────────────┘
+Browser / Frontend
+       │ HTTP
+       ▼
+Spring Boot REST API ───────► MySQL
+       │
+       ▼
+Python / Flask AI Service
+       │
+       ▼
+Image analysis / prediction
 ```
 
-## Technology stack
+## Technology Stack
 
-| Layer | Technology |
+| Component | Technology |
 |---|---|
 | Frontend | HTML5, CSS3, JavaScript |
-| Backend | Java, Spring Boot, Maven |
-| AI service | Python, Flask, PyTorch |
-| Database | MySQL |
+| Backend | Java 17, Spring Boot, Spring Data JPA, Maven |
+| Security / validation | Spring Security, Spring Validation |
+| AI service | Python, Flask, PyTorch, Pillow |
+| Database | MySQL 8 |
 | Local deployment | Docker Compose |
+| CI | GitHub Actions |
 
-## Repository structure
+## Repository Structure
 
 ```text
 Counterfeit-Detection-System/
-├── frontend/             # Web interface
-├── java-backend/          # Spring Boot REST API
-├── ai-service/            # Flask AI service and model code
-├── database/              # Database schema/scripts
-├── .github/workflows/     # CI and security automation
-├── .env.example           # Configuration template
-├── docker-compose.yml     # Local multi-service deployment
-├── CONTRIBUTING.md        # Contribution workflow
-├── SECURITY.md            # Security reporting guidance
-└── README.md              # Project documentation
+├── frontend/                 # Web interface
+├── java-backend/             # Spring Boot REST API
+├── ai-service/               # Flask AI service and model code
+├── database/                 # Database initialization scripts
+├── .github/workflows/        # CI and security automation
+├── .env.example              # Safe local configuration template
+├── docker-compose.yml        # Multi-service local deployment
+├── CONTRIBUTING.md           # Development workflow
+├── SECURITY.md               # Security reporting guidance
+└── README.md
 ```
 
-## Quick start with Docker
+## Quick Start
 
-The repository includes a Docker Compose configuration for local multi-service deployment.
+### Prerequisites
+
+- Java 17
+- Maven
+- Python 3.11+
+- MySQL 8+
+- Docker Desktop (recommended for the multi-service setup)
+
+### Docker Compose
+
+Copy the configuration template:
 
 ```bash
 cp .env.example .env
-# Edit .env and replace placeholder values with local values
+```
+
+Replace placeholder credentials in `.env`, then:
+
+```bash
 docker compose up --build -d
 ```
 
-The Spring Boot backend is configured for port `8081`. Do not commit `.env` or real credentials.
+The backend is exposed on port `8081`.
 
-To stop the local services:
+Stop the services:
 
 ```bash
 docker compose down
 ```
 
-## Development setup
+### Manual Development
 
-### 1. Database
-
-Start a local MySQL instance and apply the SQL scripts available under `database/`.
-
-### 2. AI service
+1. Start MySQL and initialize the scripts under `database/`.
+2. Start the AI service:
 
 ```bash
 cd ai-service
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python app.py
 ```
 
-### 3. Java backend
+3. Start the backend:
 
 ```bash
 cd java-backend
 mvn spring-boot:run
 ```
 
-### 4. Frontend
+4. Serve `frontend/` with a local development server.
 
-Serve the `frontend/` directory with a local development server, such as VS Code Live Server.
+## Configuration
 
-### Configuration
+The backend reads sensitive and machine-specific values from environment variables, including:
 
-Use `.env.example` as the starting point for local configuration. Keep secrets, passwords, API keys, and machine-specific settings outside Git.
+- `DB_URL`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `UPLOAD_DIR`
+- `CORS_ALLOWED_ORIGINS`
 
-## API areas
+Use `.env.example` as the template. Never commit `.env`, real passwords, API keys, tokens, or uploaded user data.
 
-The backend exposes functionality covering:
+## Testing & CI
 
-- Authentication and user management
-- Product image analysis
-- Prediction history
-- System statistics
-- Administrative data access
+GitHub Actions validates the backend and AI service:
 
-For endpoint-level details, see the Spring Boot source under `java-backend/`.
+- Maven build and test execution
+- Python dependency installation
+- Python test execution
+- Python source compilation
+- Dependency-review checks on pull requests
+- Repository secret scanning
 
-## Testing and quality
+Run component checks locally before submitting a change:
 
-The project uses GitHub Actions for automated repository checks and security scanning. Python validation is maintained separately from the application services where appropriate.
+```bash
+cd java-backend
+mvn -B verify
+```
 
-Before submitting a change, run the relevant checks for the component you modified. Do not describe a test as passing unless it has actually been executed.
+```bash
+cd ai-service
+pytest -q
+python -m py_compile app.py predict.py train_model.py
+```
+
+Only treat a check as passing when it has actually been executed successfully.
 
 ## Security
 
-Security is treated as part of the development workflow.
+- Keep secrets outside Git.
+- Use environment variables for local credentials.
+- Do not upload real personal data or credentials.
+- Review CI security failures before merging.
+- Report suspected vulnerabilities privately using `SECURITY.md`.
 
-- Never commit real credentials or API keys.
-- Store local secrets in environment variables or another local secret-management mechanism.
-- Keep `.env` files out of version control.
-- Review dependency and secret-scan failures before merging changes.
-- Report suspected vulnerabilities privately according to `SECURITY.md`.
+## Current Status
 
-## Current status
+The project is maintained as an MCA research-work project focused on full-stack software engineering and AI-assisted product authenticity analysis.
 
-This project is under active development as an MCA research-work project. The architecture is intended to provide a clear foundation for further improvements in model evaluation, automated testing, observability, and deployment.
+Known improvement areas include broader automated tests, reproducible model evaluation, stronger API validation, observability, and deployment hardening.
 
 ## Roadmap
 
-Potential engineering improvements include:
+- Expand unit and integration test coverage
+- Document reproducible AI evaluation and measured metrics
+- Improve API validation and error responses
+- Add structured logging and observability
+- Strengthen deployment documentation
+- Add architecture/API diagrams as the system evolves
 
-- Expand automated unit and integration test coverage
-- Add reproducible AI evaluation with documented datasets and metrics
-- Improve API validation and error handling
-- Add stronger observability and structured logging
-- Improve deployment documentation
-- Add architecture and API diagrams as the system evolves
-
-These are roadmap items, not claims that the functionality already exists.
+These are future improvements, not claims of completed functionality.
 
 ## Contributing
 
-Please read `CONTRIBUTING.md` before opening a pull request. Prefer small, focused changes with clear commit messages and relevant validation.
-
-## Security reporting
-
-Please use the process described in `SECURITY.md` for security-related reports. Do not publish credentials or sensitive vulnerability details in public issues.
+See `CONTRIBUTING.md` for the development workflow. Keep changes focused, use meaningful commit messages, and include relevant validation evidence.
 
 ## License
 
-No license is currently declared in the repository. Until a license is added, assume the source is **all rights reserved** and do not redistribute it as open-source software.
+No open-source license is currently declared. Until a license is added, the repository should be treated as **all rights reserved**.
 
 ---
 
-Built as an MCA Research Work Project with a focus on full-stack software engineering and AI-assisted product authenticity analysis.
+Built as an MCA research-work project with a focus on Java backend engineering, AI-assisted image analysis, and practical full-stack architecture.
