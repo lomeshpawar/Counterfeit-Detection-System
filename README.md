@@ -4,6 +4,15 @@
 
 CounterCheck is a multi-service web application that lets users submit product images for authenticity analysis and review prediction history. The system separates the web interface, Java backend, Python AI service, and MySQL persistence layer so each component has a clear responsibility.
 
+## 🌐 Live Frontend
+
+**GitHub Pages:**  
+https://lomeshpawar.github.io/Counterfeit-Detection-System/
+
+The frontend is deployed as a static HTML/CSS/JavaScript site through **GitHub Pages + GitHub Actions**.
+
+> **Important:** GitHub Pages hosts only the frontend. Java, Python/Flask, and MySQL services must be hosted separately for the full application functionality to work online.
+
 ## Why this project?
 
 Counterfeit products create a difficult verification problem: visual evidence must be processed, an analysis result must be returned through an API, and application data must be stored reliably. This project explores that workflow through a practical full-stack architecture combining Java backend development with an AI service.
@@ -17,6 +26,7 @@ Counterfeit products create a difficult verification problem: visual evidence mu
 - System statistics and analytics
 - MySQL persistence
 - Docker Compose support for local multi-service deployment
+- Static frontend deployment through GitHub Pages
 
 > **Scope note:** The repository documents the capabilities currently present in the codebase. Model accuracy, production performance, and real-world counterfeit-detection effectiveness have not been claimed without measured evidence.
 
@@ -26,6 +36,7 @@ Counterfeit products create a difficult verification problem: visual evidence mu
 ┌──────────────────────────┐
 │   Frontend               │
 │   HTML / CSS / JavaScript│
+│   GitHub Pages           │
 └────────────┬─────────────┘
              │ HTTP
              ▼
@@ -50,6 +61,8 @@ Counterfeit products create a difficult verification problem: visual evidence mu
 | Backend | Java, Spring Boot, Maven |
 | AI service | Python, Flask, PyTorch |
 | Database | MySQL |
+| Frontend hosting | GitHub Pages |
+| Deployment automation | GitHub Actions |
 | Local deployment | Docker Compose |
 
 ## Repository structure
@@ -57,15 +70,48 @@ Counterfeit products create a difficult verification problem: visual evidence mu
 ```text
 Counterfeit-Detection-System/
 ├── frontend/             # Web interface
-├── java-backend/          # Spring Boot REST API
+├── java-backend/         # Spring Boot REST API
 ├── ai-service/            # Flask AI service and model code
 ├── database/              # Database schema/scripts
-├── .github/workflows/     # CI and security automation
+├── .github/workflows/     # CI, security and Pages automation
 ├── .env.example           # Configuration template
 ├── docker-compose.yml     # Local multi-service deployment
 ├── CONTRIBUTING.md        # Contribution workflow
 ├── SECURITY.md            # Security reporting guidance
 └── README.md              # Project documentation
+```
+
+## ☁️ GitHub Pages Deployment
+
+The frontend is published from the `frontend/` directory using:
+
+```text
+.github/workflows/pages.yml
+```
+
+Deployment flow:
+
+```text
+GitHub Repository
+       │
+       ▼
+GitHub Actions
+       │
+       ▼
+frontend/
+       │
+       ▼
+GitHub Pages
+```
+
+The workflow runs automatically when relevant frontend or Pages workflow files are pushed to `main`.
+
+To update the live frontend:
+
+```bash
+git add frontend .github/workflows/pages.yml
+git commit -m "update: frontend"
+git push origin main
 ```
 
 ## Quick start with Docker
@@ -111,7 +157,7 @@ mvn spring-boot:run
 
 Serve the `frontend/` directory with a local development server, such as VS Code Live Server.
 
-### Configuration
+## Configuration
 
 Use `.env.example` as the starting point for local configuration. Keep secrets, passwords, API keys, and machine-specific settings outside Git.
 
@@ -135,8 +181,6 @@ Before submitting a change, run the relevant checks for the component you modifi
 
 ## Security
 
-Security is treated as part of the development workflow.
-
 - Never commit real credentials or API keys.
 - Store local secrets in environment variables or another local secret-management mechanism.
 - Keep `.env` files out of version control.
@@ -145,7 +189,7 @@ Security is treated as part of the development workflow.
 
 ## Current status
 
-This project is under active development as an MCA research-work project. The architecture is intended to provide a clear foundation for further improvements in model evaluation, automated testing, observability, and deployment.
+This project is under active development as an MCA research-work project. The frontend is publicly hosted on GitHub Pages; the backend and AI services remain separate components.
 
 ## Roadmap
 
@@ -155,6 +199,7 @@ Potential engineering improvements include:
 - Add reproducible AI evaluation with documented datasets and metrics
 - Improve API validation and error handling
 - Add stronger observability and structured logging
+- Deploy the Java backend and AI service to production hosting
 - Improve deployment documentation
 - Add architecture and API diagrams as the system evolves
 
