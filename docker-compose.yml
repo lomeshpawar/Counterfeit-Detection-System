@@ -4,8 +4,8 @@ services:
     environment:
       MYSQL_DATABASE: counterfeit_db
       MYSQL_USER: ${MYSQL_USER:-countercheck}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-root-password}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database:/docker-entrypoint-initdb.d:ro
@@ -20,6 +20,7 @@ services:
     restart: unless-stopped
     environment:
       PORT: 5000
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
     expose:
       - "5000"
 
@@ -35,10 +36,11 @@ services:
       SERVER_PORT: 8081
       DB_URL: jdbc:mysql://mysql:3306/counterfeit_db
       DB_USERNAME: ${MYSQL_USER:-countercheck}
-      DB_PASSWORD: ${MYSQL_PASSWORD:-change-me}
+      DB_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
       SHOW_SQL: "false"
       JPA_DDL_AUTO: update
       UPLOAD_DIR: /data/uploads/
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
     ports:
       - "8081:8081"
     volumes:
