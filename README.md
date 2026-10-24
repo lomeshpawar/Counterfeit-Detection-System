@@ -1,56 +1,39 @@
 # CounterCheck — Counterfeit Product Detection System
 
-> Full-stack research project for AI-assisted product authenticity analysis.
+> A full-stack academic research project exploring image-based product authenticity analysis.
 
-CounterCheck is a multi-service web application that lets users submit product images for authenticity analysis and review prediction history. The system separates the web interface, Java backend, Python AI service, and MySQL persistence layer so each component has a clear responsibility.
+CounterCheck combines a static HTML/CSS/JavaScript interface, a Spring Boot REST API, a Python AI service, and MySQL persistence. The repository separates those components so they can be developed and tested independently.
 
-## 🌐 Live Frontend
+## Frontend demo
 
-**GitHub Pages:**  
-https://lomeshpawar.github.io/Counterfeit-Detection-System/
+**Static UI:** https://lomeshpawar.github.io/Counterfeit-Detection-System/
 
-The frontend is deployed as a static HTML/CSS/JavaScript site through **GitHub Pages + GitHub Actions**.
-
-> **Important:** GitHub Pages hosts only the frontend. Java, Python/Flask, and MySQL services must be hosted separately for the full application functionality to work online.
-
-## Why this project?
-
-Counterfeit products create a difficult verification problem: visual evidence must be processed, an analysis result must be returned through an API, and application data must be stored reliably. This project explores that workflow through a practical full-stack architecture combining Java backend development with an AI service.
+GitHub Pages hosts only the static frontend. Interactive features that require authentication, image analysis, prediction history, or administrative data need the Java API, AI service, and database to be deployed and correctly configured. The current JavaScript still points to `http://localhost:8081/api` by default, so those requests will not reach your local computer when a recruiter opens the public Pages site. Treat the public URL as a UI preview until a public API URL is configured.
 
 ## Key capabilities
 
 - User registration and login
-- Admin authentication and dashboard
-- Product image upload and AI-assisted analysis
-- Prediction history
-- System statistics and analytics
+- Product image selection, preview, and submission for analysis
+- Prediction result and history views
+- Administrative views and prediction statistics
+- Spring Boot REST API
+- Separate Python AI service
 - MySQL persistence
-- Docker Compose support for local multi-service deployment
-- Static frontend deployment through GitHub Pages
+- GitHub Actions checks and GitHub Pages frontend deployment
 
-> **Scope note:** The repository documents the capabilities currently present in the codebase. Model accuracy, production performance, and real-world counterfeit-detection effectiveness have not been claimed without measured evidence.
+These capabilities depend on the relevant services being configured and running; the frontend URL alone does not provide a hosted inference backend.
 
 ## Architecture
 
 ```text
-┌──────────────────────────┐
-│   Frontend               │
-│   HTML / CSS / JavaScript│
-│   GitHub Pages           │
-└────────────┬─────────────┘
-             │ HTTP
-             ▼
-┌──────────────────────────┐
-│   Spring Boot API        │
-│   Java / REST            │
-└───────┬───────────┬──────┘
-        │           │
-        │           └──────────────┐
-        ▼                          ▼
-┌──────────────────┐      ┌──────────────────┐
-│ MySQL Database   │      │ Flask AI Service │
-│ Persistence      │      │ Image analysis   │
-└──────────────────┘      └──────────────────┘
+Browser / GitHub Pages
+        |
+        | HTTPS API requests (configure public API URL)
+        v
+Spring Boot REST API  <---->  MySQL
+        |
+        v
+Python AI service
 ```
 
 ## Technology stack
@@ -58,165 +41,80 @@ Counterfeit products create a difficult verification problem: visual evidence mu
 | Layer | Technology |
 |---|---|
 | Frontend | HTML5, CSS3, JavaScript |
-| Backend | Java, Spring Boot, Maven |
-| AI service | Python, Flask, PyTorch |
+| Backend API | Java, Spring Boot, Maven |
+| AI service | Python, Flask / model-serving code |
 | Database | MySQL |
-| Frontend hosting | GitHub Pages |
-| Deployment automation | GitHub Actions |
-| Local deployment | Docker Compose |
+| Static hosting | GitHub Pages |
+| Automation | GitHub Actions |
+| Local multi-service setup | Docker Compose |
 
-## Repository structure
+## Repository layout
 
 ```text
 Counterfeit-Detection-System/
-├── frontend/             # Web interface
-├── java-backend/         # Spring Boot REST API
-├── ai-service/            # Flask AI service and model code
-├── database/              # Database schema/scripts
-├── .github/workflows/     # CI, security and Pages automation
-├── .env.example           # Configuration template
-├── docker-compose.yml     # Local multi-service deployment
-├── CONTRIBUTING.md        # Contribution workflow
-├── SECURITY.md            # Security reporting guidance
-└── README.md              # Project documentation
+├── frontend/              # Static pages, styles, and browser JavaScript
+├── java-backend/           # Spring Boot API
+├── ai-service/             # Python AI service
+├── database/               # Database scripts
+├── .github/workflows/      # CI, security, and Pages workflows
+├── .env.example            # Configuration template
+├── docker-compose.yml      # Local service orchestration
+├── CONTRIBUTING.md
+├── SECURITY.md
+└── README.md
 ```
 
-## ☁️ GitHub Pages Deployment
+## Run locally
 
-The frontend is published from the `frontend/` directory using:
+### Option A — Docker Compose
 
-```text
-.github/workflows/pages.yml
-```
+1. Install Docker Desktop.
+2. Copy the example environment file and replace all placeholders with local values:
 
-Deployment flow:
+   ```powershell
+   Copy-Item .env.example .env
+   ```
 
-```text
-GitHub Repository
-       │
-       ▼
-GitHub Actions
-       │
-       ▼
-frontend/
-       │
-       ▼
-GitHub Pages
-```
+3. Start the services:
 
-The workflow runs automatically when relevant frontend or Pages workflow files are pushed to `main`.
+   ```bash
+   docker compose up --build
+   ```
 
-To update the live frontend:
+Review `docker-compose.yml` and `.env.example` for the exact ports and required variables before starting.
 
-```bash
-git add frontend .github/workflows/pages.yml
-git commit -m "update: frontend"
-git push origin main
-```
+### Option B — Run components separately
 
-## Quick start with Docker
+1. Start MySQL and apply the SQL scripts under `database/`.
+2. Start the Python service using its requirements file and documented entry point.
+3. Start the Java backend from `java-backend/` with `mvn spring-boot:run`.
+4. Serve the `frontend/` directory with VS Code Live Server or another static server.
 
-The repository includes a Docker Compose configuration for local multi-service deployment.
+The frontend's API base URL is currently hard-coded to `http://localhost:8081/api` in `frontend/js/script.js`. For a public deployment, change it to the deployed API's HTTPS base URL and confirm backend CORS and upload-storage configuration. Never put database credentials, passwords, tokens, or private keys in frontend code.
 
-```bash
-cp .env.example .env
-# Edit .env and replace placeholder values with local values
-docker compose up --build -d
-```
+## GitHub Pages deployment
 
-The Spring Boot backend is configured for port `8081`. Do not commit `.env` or real credentials.
+The workflow `.github/workflows/pages.yml` publishes `frontend/` as a static site. After changes are pushed to `main`, inspect the repository's **Actions** tab and confirm the latest **Deploy Frontend to GitHub Pages** run succeeds.
 
-To stop the local services:
+## Validation and limitations
 
-```bash
-docker compose down
-```
-
-## Development setup
-
-### 1. Database
-
-Start a local MySQL instance and apply the SQL scripts available under `database/`.
-
-### 2. AI service
-
-```bash
-cd ai-service
-pip install -r requirements.txt
-python app.py
-```
-
-### 3. Java backend
-
-```bash
-cd java-backend
-mvn spring-boot:run
-```
-
-### 4. Frontend
-
-Serve the `frontend/` directory with a local development server, such as VS Code Live Server.
-
-## Configuration
-
-Use `.env.example` as the starting point for local configuration. Keep secrets, passwords, API keys, and machine-specific settings outside Git.
-
-## API areas
-
-The backend exposes functionality covering:
-
-- Authentication and user management
-- Product image analysis
-- Prediction history
-- System statistics
-- Administrative data access
-
-For endpoint-level details, see the Spring Boot source under `java-backend/`.
-
-## Testing and quality
-
-The project uses GitHub Actions for automated repository checks and security scanning. Python validation is maintained separately from the application services where appropriate.
-
-Before submitting a change, run the relevant checks for the component you modified. Do not describe a test as passing unless it has actually been executed.
+- CI runs automated repository checks; review the Actions tab for the latest result rather than assuming every workflow is green.
+- Verify image uploads, CORS, API routing, persistent uploaded-image storage, and backend availability before calling the application fully live.
+- Model metrics and real-world counterfeit-detection accuracy should only be reported when supported by a repeatable evaluation on a documented dataset.
+- Do not upload sensitive product/customer data to a public demo.
 
 ## Security
 
-- Never commit real credentials or API keys.
-- Store local secrets in environment variables or another local secret-management mechanism.
-- Keep `.env` files out of version control.
-- Review dependency and secret-scan failures before merging.
-- Report suspected vulnerabilities privately according to `SECURITY.md`.
+- Keep `.env` local and never commit real credentials.
+- Use HTTPS for public API endpoints.
+- Validate uploaded file type and size on the server as well as in the browser.
+- Restrict administrative operations in the backend; frontend checks alone are not security controls.
 
-## Current status
+## Project status
 
-This project is under active development as an MCA research-work project. The frontend is publicly hosted on GitHub Pages; the backend and AI services remain separate components.
+Academic full-stack project under development. The static frontend has a GitHub Pages workflow; full online functionality depends on the API, AI service, database, and public API configuration.
 
-## Roadmap
+## Author
 
-Potential engineering improvements include:
+**Lomesh Pawar** · [GitHub](https://github.com/lomeshpawar)
 
-- Expand automated unit and integration test coverage
-- Add reproducible AI evaluation with documented datasets and metrics
-- Improve API validation and error handling
-- Add stronger observability and structured logging
-- Deploy the Java backend and AI service to production hosting
-- Improve deployment documentation
-- Add architecture and API diagrams as the system evolves
-
-These are roadmap items, not claims that the functionality already exists.
-
-## Contributing
-
-Please read `CONTRIBUTING.md` before opening a pull request. Prefer small, focused changes with clear commit messages and relevant validation.
-
-## Security reporting
-
-Please use the process described in `SECURITY.md` for security-related reports. Do not publish credentials or sensitive vulnerability details in public issues.
-
-## License
-
-No license is currently declared in the repository. Until a license is added, assume the source is **all rights reserved** and do not redistribute it as open-source software.
-
----
-
-Built as an MCA Research Work Project with a focus on full-stack software engineering and AI-assisted product authenticity analysis.
