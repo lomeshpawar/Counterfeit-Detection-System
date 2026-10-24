@@ -8,6 +8,8 @@ CounterCheck combines a static HTML/CSS/JavaScript interface, a Spring Boot REST
 
 **Static UI:** https://lomeshpawar.github.io/Counterfeit-Detection-System/
 
+**Frontend deployment workflow:** https://github.com/lomeshpawar/Counterfeit-Detection-System/actions/workflows/pages.yml
+
 GitHub Pages hosts only the static frontend. Interactive features that require authentication, image analysis, prediction history, or administrative data need the Java API, AI service, and database to be deployed and correctly configured. The current JavaScript still points to `http://localhost:8081/api` by default, so those requests will not reach your local computer when a recruiter opens the public Pages site. Treat the public URL as a UI preview until a public API URL is configured.
 
 ## Key capabilities
