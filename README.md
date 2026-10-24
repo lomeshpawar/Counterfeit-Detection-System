@@ -28,7 +28,7 @@ Counterfeit products create a difficult verification problem: visual evidence mu
 - Docker Compose support for local multi-service deployment
 - Static frontend deployment through GitHub Pages
 
-> **Scope note:** The repository documents the capabilities currently present in the codebase. Model accuracy, production performance, and real-world counterfeit-detection effectiveness have not been claimed without measured evidence.
+> **Model limitation:** The current AI service is a prototype heuristic. It combines generic pretrained ImageNet MobileNetV2 output with hand-designed image sharpness, contrast, and colour statistics. It has not been trained or validated as a genuine-versus-counterfeit classifier on a labelled dataset. The returned confidence value is a heuristic score, not a calibrated probability. Do not use it as proof of product authenticity.
 
 ## Architecture
 
@@ -49,7 +49,7 @@ Counterfeit products create a difficult verification problem: visual evidence mu
         ▼                          ▼
 ┌──────────────────┐      ┌──────────────────┐
 │ MySQL Database   │      │ Flask AI Service │
-│ Persistence      │      │ Image analysis   │
+│ Persistence      │      │ Image heuristics │
 └──────────────────┘      └──────────────────┘
 ```
 
@@ -59,7 +59,7 @@ Counterfeit products create a difficult verification problem: visual evidence mu
 |---|---|
 | Frontend | HTML5, CSS3, JavaScript |
 | Backend | Java, Spring Boot, Maven |
-| AI service | Python, Flask, PyTorch |
+| AI service | Python, Flask, Pillow, optional PyTorch |
 | Database | MySQL |
 | Frontend hosting | GitHub Pages |
 | Deployment automation | GitHub Actions |
@@ -71,14 +71,14 @@ Counterfeit products create a difficult verification problem: visual evidence mu
 Counterfeit-Detection-System/
 ├── frontend/             # Web interface
 ├── java-backend/         # Spring Boot REST API
-├── ai-service/            # Flask AI service and model code
-├── database/              # Database schema/scripts
-├── .github/workflows/     # CI, security and Pages automation
-├── .env.example           # Configuration template
-├── docker-compose.yml     # Local multi-service deployment
-├── CONTRIBUTING.md        # Contribution workflow
-├── SECURITY.md            # Security reporting guidance
-└── README.md              # Project documentation
+├── ai-service/           # Flask API and image-analysis prototype
+├── database/             # Database schema/scripts
+├── .github/workflows/    # CI, security and Pages automation
+├── .env.example          # Configuration template
+├── docker-compose.yml    # Local multi-service deployment
+├── CONTRIBUTING.md       # Contribution workflow
+├── SECURITY.md           # Security reporting guidance
+└── README.md             # Project documentation
 ```
 
 ## ☁️ GitHub Pages Deployment
@@ -175,7 +175,7 @@ For endpoint-level details, see the Spring Boot source under `java-backend/`.
 
 ## Testing and quality
 
-The project uses GitHub Actions for automated repository checks and security scanning. Python validation is maintained separately from the application services where appropriate.
+The project uses GitHub Actions for automated repository checks and security scanning. The AI service has Flask test-client coverage for health checks, upload validation, successful mocked predictions, invalid images, and unexpected prediction errors.
 
 Before submitting a change, run the relevant checks for the component you modified. Do not describe a test as passing unless it has actually been executed.
 
@@ -189,19 +189,20 @@ Before submitting a change, run the relevant checks for the component you modifi
 
 ## Current status
 
-This project is under active development as an MCA research-work project. The frontend is publicly hosted on GitHub Pages; the backend and AI services remain separate components.
+This project is under active development as an MCA research-work project. The frontend is publicly hosted on GitHub Pages; the backend and AI services remain separate components. The image-analysis service is a demonstration prototype and has not been validated for real-world authenticity decisions.
 
 ## Roadmap
 
 Potential engineering improvements include:
 
+- Train and evaluate a counterfeit-specific classifier using a labelled dataset
+- Publish reproducible evaluation with a held-out test set and suitable metrics
+- Calibrate confidence scores or rename them to reflect heuristic scoring
 - Expand automated unit and integration test coverage
-- Add reproducible AI evaluation with documented datasets and metrics
 - Improve API validation and error handling
 - Add stronger observability and structured logging
 - Deploy the Java backend and AI service to production hosting
 - Improve deployment documentation
-- Add architecture and API diagrams as the system evolves
 
 These are roadmap items, not claims that the functionality already exists.
 
@@ -219,4 +220,4 @@ No license is currently declared in the repository. Until a license is added, as
 
 ---
 
-Built as an MCA Research Work Project with a focus on full-stack software engineering and AI-assisted product authenticity analysis.
+Built as an MCA research-work project with a focus on full-stack software engineering and transparent AI-assisted product-image analysis.
