@@ -20,7 +20,7 @@ def health_check():
     return jsonify({
         "status": "UP",
         "service": "CounterCheck AI Service",
-        "model": "MobileNetV2 ImageNet + texture heuristic (unvalidated)"
+        "model": "Image-feature heuristic (unvalidated)"
     }), 200
 
 
