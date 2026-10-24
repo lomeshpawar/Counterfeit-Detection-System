@@ -32,9 +32,11 @@ def predict():
             "error": "No image file provided. Please attach a file under key 'image' or 'file'."
         }), 400
 
-    file = request.files.get('image') or request.files.get('file')
+    file = request.files.get('image')
+    if file is None:
+        file = request.files.get('file')
 
-    if file.filename == '':
+    if file is None or file.filename == '':
         return jsonify({"error": "Empty filename provided."}), 400
 
     try:
