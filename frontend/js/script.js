@@ -21,7 +21,8 @@ function apiFetch(path, options) {
         error.code = "API_NOT_CONFIGURED";
         throw error;
     }
-    return apiFetch(`${path}`, options);
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return fetch(`${API_BASE_URL}${normalizedPath}`, options);
 }
 
 function getApiErrorMessage(error, fallback) {
