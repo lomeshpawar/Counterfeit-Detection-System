@@ -92,7 +92,7 @@ Review `docker-compose.yml` and `.env.example` for the exact ports and required 
 3. Start the Java backend from `java-backend/` with `mvn spring-boot:run`.
 4. Serve the `frontend/` directory with VS Code Live Server or another static server.
 
-The frontend's API base URL is currently hard-coded to `http://localhost:8081/api` in `frontend/js/script.js`. For a public deployment, change it to the deployed API's HTTPS base URL and confirm backend CORS and upload-storage configuration. Never put database credentials, passwords, tokens, or private keys in frontend code.
+Frontend API configuration is centralized in `frontend/js/config.js`. When the site is served from `localhost` or `127.0.0.1`, the app uses `http://localhost:8081/api` for local development. For a public deployment, set `apiBaseUrl` in that file to the deployed backend's HTTPS API base URL (for example, `https://api.example.com/api`). Leave it empty for a static-only preview; API-backed actions show a configuration message and backend-hosted image paths use placeholders until an API is configured. Confirm backend CORS and upload-storage configuration. Never put database credentials, passwords, tokens, or private keys in frontend code.
 
 ## GitHub Pages deployment
 
