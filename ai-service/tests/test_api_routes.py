@@ -98,3 +98,35 @@ def test_cors_does_not_allow_unconfigured_origin(client):
 
     assert response.status_code == 200
     assert "Access-Control-Allow-Origin" not in response.headers
+
+
+def test_cors_preflight_allows_configured_local_origin(client):
+    origin = "http://localhost:5173"
+
+    response = client.options(
+        "/predict",
+        headers={
+            "Origin": origin,
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type",
+        },
+    )
+
+    assert response.status_code in (200, 204)
+    assert response.headers.get("Access-Control-Allow-Origin") == origin
+    assert "POST" in response.headers.get("Access-Control-Allow-Methods", "")
+
+
+def test_cors_preflight_does_not_allow_unconfigured_origin(client):
+    response = client.options(
+        "/predict",
+        headers={
+            "Origin": "https://untrusted.example",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type",
+        },
+    )
+
+    assert response.status_code in (200, 204)
+    assert "Access-Control-Allow-Origin" not in response.headers
+}
