@@ -129,4 +129,3 @@ def test_cors_preflight_does_not_allow_unconfigured_origin(client):
 
     assert response.status_code in (200, 204)
     assert "Access-Control-Allow-Origin" not in response.headers
-}
