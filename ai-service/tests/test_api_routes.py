@@ -79,3 +79,22 @@ def test_predict_returns_500_for_unexpected_prediction_error(client):
     assert response.status_code == 500
     assert response.get_json()["error"] == "Prediction service failed to process the image."
     assert "internal detail" not in response.get_data(as_text=True)
+
+
+def test_cors_allows_configured_local_origin(client):
+    origin = "http://localhost:5173"
+
+    response = client.get("/health", headers={"Origin": origin})
+
+    assert response.status_code == 200
+    assert response.headers.get("Access-Control-Allow-Origin") == origin
+
+
+def test_cors_does_not_allow_unconfigured_origin(client):
+    response = client.get(
+        "/health",
+        headers={"Origin": "https://untrusted.example"},
+    )
+
+    assert response.status_code == 200
+    assert "Access-Control-Allow-Origin" not in response.headers
