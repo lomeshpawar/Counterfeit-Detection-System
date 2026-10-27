@@ -1,13 +1,23 @@
 """
-CounterCheck AI Microservice - Flask REST API.
+CounterCheck AI microservice - Flask REST API.
 """
+
+import os
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from predict import predict_image
 
 app = Flask(__name__)
-CORS(app)
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:3000,http://localhost:5173",
+    ).split(",")
+    if origin.strip()
+]
+CORS(app, resources={r"/*": {"origins": allowed_origins}})
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
 
 
@@ -16,7 +26,7 @@ def request_too_large(_error):
     return jsonify({"error": "Image exceeds the 10 MB upload limit."}), 413
 
 
-@app.route('/health', methods=['GET'])
+@app.route("/health", methods=["GET"])
 def health_check():
     return jsonify({
         "status": "UP",
@@ -25,18 +35,18 @@ def health_check():
     }), 200
 
 
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
-    if 'image' not in request.files and 'file' not in request.files:
+    if "image" not in request.files and "file" not in request.files:
         return jsonify({
             "error": "No image file provided. Please attach a file under key 'image' or 'file'."
         }), 400
 
-    file = request.files.get('image')
+    file = request.files.get("image")
     if file is None:
-        file = request.files.get('file')
+        file = request.files.get("file")
 
-    if file is None or file.filename == '':
+    if file is None or file.filename == "":
         return jsonify({"error": "Empty filename provided."}), 400
 
     try:
@@ -50,6 +60,5 @@ def predict():
         return jsonify({"error": "Prediction service failed to process the image."}), 500
 
 
-if __name__ == '__main__':
-    print("[AI-SERVICE] Starting CounterCheck AI Flask Microservice on http://localhost:5000 ...")
-    app.run(host='0.0.0.0', port=5000, debug=False)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")), debug=False)
