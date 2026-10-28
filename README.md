@@ -71,7 +71,7 @@ Counterfeit-Detection-System/
 ### Option A — Docker Compose
 
 1. Install Docker Desktop.
-2. Copy the example environment file and replace all placeholders with local values:
+2. Copy the example environment file, then set non-empty local values for both `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD` in `.env`. The template intentionally leaves them empty so Compose refuses to start until you configure them:
 
    ```powershell
    Copy-Item .env.example .env
