@@ -3,6 +3,8 @@ package com.counterfeit.controller;
 import com.counterfeit.dto.DashboardStats;
 import com.counterfeit.dto.PredictionResponse;
 import com.counterfeit.service.PredictionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +23,8 @@ import java.util.Map;
 @RequestMapping("/api/predictions")
 @CrossOrigin(origins = "*")
 public class PredictionController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PredictionController.class);
 
     private final PredictionService predictionService;
 
@@ -74,8 +78,9 @@ public class PredictionController {
                 return ResponseEntity.badRequest().body(error);
             }
         } catch (Exception e) {
+            LOGGER.warn("Unable to decode uploaded product image", e);
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Unable to decode image file content: " + e.getMessage());
+            error.put("error", "Unable to decode image file. Please upload a valid image.");
             return ResponseEntity.badRequest().body(error);
         }
 
@@ -83,8 +88,9 @@ public class PredictionController {
             PredictionResponse result = predictionService.analyzeAndSave(file, userId, category);
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (Exception e) {
+            LOGGER.error("Failed to analyze uploaded product image", e);
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to analyze image: " + e.getMessage());
+            error.put("error", "Failed to analyze image. Please try again later.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
