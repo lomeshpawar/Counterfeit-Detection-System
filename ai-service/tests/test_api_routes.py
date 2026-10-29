@@ -90,6 +90,14 @@ def test_cors_allows_configured_local_origin(client):
     assert response.headers.get("Access-Control-Allow-Origin") == origin
 
 
+def test_cors_allows_vscode_live_server_origins(client):
+    for origin in ("http://localhost:5500", "http://127.0.0.1:5500"):
+        response = client.get("/health", headers={"Origin": origin})
+
+        assert response.status_code == 200
+        assert response.headers.get("Access-Control-Allow-Origin") == origin
+
+
 def test_cors_does_not_allow_unconfigured_origin(client):
     response = client.get(
         "/health",
