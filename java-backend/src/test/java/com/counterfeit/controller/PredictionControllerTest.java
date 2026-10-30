@@ -1,5 +1,6 @@
 package com.counterfeit.controller;
 
+import com.counterfeit.dto.PredictionResponse;
 import com.counterfeit.service.PredictionService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -50,8 +52,32 @@ class PredictionControllerTest {
     }
 
     @Test
+    void acceptsValidSupportedImageAndDelegatesToPredictionService() throws Exception {
+        MockMultipartFile file = pngImage("product.png", 32, 32);
+        PredictionResponse expected = new PredictionResponse();
+        when(predictionService.analyzeAndSave(file, 42L, "footwear")).thenReturn(expected);
+
+        ResponseEntity<?> response = predictionController.analyzeProductImage(file, 42L, "footwear");
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertSame(expected, response.getBody());
+    }
+
+    @Test
     void rejectsImagesAboveMaximumWidthBeforeCallingPredictionService() throws Exception {
         MockMultipartFile file = pngImage("wide.png", 4097, 1);
+
+        ResponseEntity<?> response = predictionController.analyzeProductImage(file, 42L, "footwear");
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertInstanceOf(Map.class, response.getBody());
+        assertTrue(((Map<?, ?>) response.getBody()).get("error").toString().contains("dimensions"));
+        verifyNoInteractions(predictionService);
+    }
+
+    @Test
+    void rejectsImagesAboveMaximumHeightBeforeCallingPredictionService() throws Exception {
+        MockMultipartFile file = pngImage("tall.png", 1, 4097);
 
         ResponseEntity<?> response = predictionController.analyzeProductImage(file, 42L, "footwear");
 
@@ -70,6 +96,19 @@ class PredictionControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertInstanceOf(Map.class, response.getBody());
         assertTrue(((Map<?, ?>) response.getBody()).get("error").toString().contains("12 megapixels"));
+        verifyNoInteractions(predictionService);
+    }
+
+    @Test
+    void rejectsMalformedImageDataBeforeCallingPredictionService() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "broken.png", "image/png", new byte[]{1, 2, 3, 4}
+        );
+
+        ResponseEntity<?> response = predictionController.analyzeProductImage(file, 42L, "footwear");
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertInstanceOf(Map.class, response.getBody());
         verifyNoInteractions(predictionService);
     }
 
