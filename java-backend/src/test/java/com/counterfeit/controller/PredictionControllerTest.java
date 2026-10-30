@@ -19,6 +19,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,14 +34,7 @@ class PredictionControllerTest {
 
     @Test
     void analyzeDoesNotExposeInternalExceptionDetails() throws Exception {
-        ByteArrayOutputStream imageBytes = new ByteArrayOutputStream();
-        ImageIO.write(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB), "png", imageBytes);
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "product.png",
-                "image/png",
-                imageBytes.toByteArray()
-        );
+        MockMultipartFile file = pngImage("product.png", 1, 1);
 
         when(predictionService.analyzeAndSave(file, 42L, "footwear"))
                 .thenThrow(new IOException("internal database detail"));
@@ -52,5 +47,36 @@ class PredictionControllerTest {
         Map<?, ?> body = (Map<?, ?>) response.getBody();
         assertEquals("Failed to analyze image. Please try again later.", body.get("error"));
         assertFalse(body.get("error").toString().contains("internal database detail"));
+    }
+
+    @Test
+    void rejectsImagesAboveMaximumWidthBeforeCallingPredictionService() throws Exception {
+        MockMultipartFile file = pngImage("wide.png", 4097, 1);
+
+        ResponseEntity<?> response = predictionController.analyzeProductImage(file, 42L, "footwear");
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertInstanceOf(Map.class, response.getBody());
+        assertTrue(((Map<?, ?>) response.getBody()).get("error").toString().contains("dimensions"));
+        verifyNoInteractions(predictionService);
+    }
+
+    @Test
+    void rejectsImagesAbovePixelLimitBeforeCallingPredictionService() throws Exception {
+        MockMultipartFile file = pngImage("large.png", 3500, 3500);
+
+        ResponseEntity<?> response = predictionController.analyzeProductImage(file, 42L, "footwear");
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertInstanceOf(Map.class, response.getBody());
+        assertTrue(((Map<?, ?>) response.getBody()).get("error").toString().contains("12 megapixels"));
+        verifyNoInteractions(predictionService);
+    }
+
+    private MockMultipartFile pngImage(String filename, int width, int height) throws IOException {
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+        ByteArrayOutputStream imageBytes = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", imageBytes);
+        return new MockMultipartFile("file", filename, "image/png", imageBytes.toByteArray());
     }
 }
