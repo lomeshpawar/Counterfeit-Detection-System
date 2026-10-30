@@ -21,7 +21,6 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/predictions")
-@CrossOrigin(origins = "*")
 public class PredictionController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PredictionController.class);
