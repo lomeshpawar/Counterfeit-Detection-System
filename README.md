@@ -25,6 +25,10 @@ GitHub Pages hosts only the static frontend. Interactive features that require a
 
 These capabilities depend on the relevant services being configured and running; the frontend URL alone does not provide a hosted inference backend.
 
+## AI model limitations
+
+The current image-analysis service is an experimental heuristic, not a validated counterfeit classifier. It combines generic pretrained MobileNetV2 ImageNet output (when the optional PyTorch dependency is available) with hand-designed image sharpness, contrast, and colour statistics. It has not been trained or evaluated as a genuine-versus-counterfeit classifier on a labelled dataset. The API's `confidence` value is a heuristic score, not a calibrated probability, and must not be treated as proof of product authenticity.
+
 ## Architecture
 
 ```text
@@ -44,7 +48,7 @@ Python AI service
 |---|---|
 | Frontend | HTML5, CSS3, JavaScript |
 | Backend API | Java, Spring Boot, Maven |
-| AI service | Python, Flask / model-serving code |
+| AI service | Python, Flask, Pillow, optional PyTorch |
 | Database | MySQL |
 | Static hosting | GitHub Pages |
 | Automation | GitHub Actions |
@@ -55,8 +59,8 @@ Python AI service
 ```text
 Counterfeit-Detection-System/
 ├── frontend/              # Static pages, styles, and browser JavaScript
-├── java-backend/           # Spring Boot API
-├── ai-service/             # Python AI service
+├── java-backend/           # Spring Boot REST API
+├── ai-service/             # Flask API and image-analysis prototype
 ├── database/               # Database scripts
 ├── .github/workflows/      # CI, security, and Pages workflows
 ├── .env.example            # Configuration template
@@ -119,4 +123,3 @@ Academic full-stack project under development. The static frontend has a GitHub 
 ## Author
 
 **Lomesh Pawar** · [GitHub](https://github.com/lomeshpawar)
-
