@@ -99,44 +99,6 @@ if (loginForm) {
 
 
 // ===============================
-// ADMIN LOGIN FORM
-// ===============================
-
-const adminLoginForm = document.getElementById("adminLoginForm");
-
-if (adminLoginForm) {
-    adminLoginForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-
-        const email = document.getElementById("adminEmail").value.trim();
-        const password = document.getElementById("adminPassword").value;
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/auth/admin/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                localStorage.setItem("counterCheckAdmin", "true");
-                localStorage.setItem("counterCheckCurrentUser", JSON.stringify(data));
-                alert("Admin login successful!");
-                window.location.href = "admin-dashboard.html";
-            } else {
-                alert(data.error || data.message || "Invalid admin credentials.");
-            }
-        } catch (error) {
-            console.error("Admin Login Error:", error);
-            alert("Could not connect to Spring Boot backend.");
-        }
-    });
-}
-
-
-// ===============================
 // IMAGE PREVIEW & DRAG-AND-DROP HANDLERS
 // ===============================
 
