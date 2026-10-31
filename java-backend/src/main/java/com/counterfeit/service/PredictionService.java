@@ -89,7 +89,7 @@ public class PredictionService {
             throw new IOException("Invalid upload path.");
         }
 
-        Files.write(savedFile, imageBytes, StandardOpenOption.CREATE_NEW);
+        Files.write(savedFile, imageBytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         String webImagePath = "/uploads/" + uniqueFilename;
 
         PredictionHistory history = new PredictionHistory();
