@@ -29,6 +29,17 @@ These capabilities depend on the relevant services being configured and running;
 
 The current image-analysis service is an experimental heuristic, not a validated counterfeit classifier. It combines generic pretrained MobileNetV2 ImageNet output (when the optional PyTorch dependency is available) with hand-designed image sharpness, contrast, and colour statistics. It has not been trained or evaluated as a genuine-versus-counterfeit classifier on a labelled dataset. The API's `confidence` value is a heuristic score, not a calibrated probability, and must not be treated as proof of product authenticity.
 
+## Evaluation roadmap
+
+The following work is planned; none of these items is claimed as implemented:
+
+- Select a documented, appropriately licensed dataset with genuine and counterfeit labels.
+- Define product/source-aware training, validation, and held-out test splits to reduce data leakage.
+- Train a counterfeit-specific baseline and compare it with the current heuristic.
+- Publish a reproducible evaluation using suitable held-out metrics (for example, precision, recall, F1-score, and a confusion matrix).
+- Calibrate predicted probabilities if a probabilistic model is introduced; otherwise continue describing the output as a heuristic score.
+- Add preprocessing and model-response tests so evaluation and inference use consistent inputs.
+
 ## Architecture
 
 ```text
