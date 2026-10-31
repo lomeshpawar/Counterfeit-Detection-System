@@ -317,7 +317,7 @@ function setupAnalysisForm() {
         if (resultSection) resultSection.style.display = "none";
         if (analyzeButton) {
             analyzeButton.disabled = true;
-            analyzeButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing with AI...';
+            analyzeButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing image features...';
         }
 
         // 4. Construct FormData
@@ -350,7 +350,7 @@ function setupAnalysisForm() {
                     prediction: data.prediction,
                     confidence: data.confidence,
                     category: data.productCategory || category,
-                    model: data.modelUsed || "MobileNetV2 Transfer Learning",
+                    model: data.modelUsed || "Image-feature heuristic (unvalidated)",
                     date: new Date(data.predictedAt || Date.now()).toLocaleString()
                 };
 
@@ -382,6 +382,13 @@ function setupAnalysisForm() {
     });
 }
 
+function formatHeuristicLabel(prediction) {
+    const normalized = typeof prediction === "string" ? prediction.toLowerCase() : "";
+    if (normalized === "genuine") return "Lower-risk image pattern (heuristic)";
+    if (normalized === "counterfeit") return "Higher-risk image pattern (heuristic)";
+    return "Unclassified heuristic result";
+}
+
 function renderInlineResult(result) {
     const resultSection = document.getElementById("analysisResultSection");
     
@@ -400,7 +407,7 @@ function renderInlineResult(result) {
 
     if (verdictBanner && verdictText) {
         verdictBanner.className = `verdict-banner ${isGenuine ? 'verdict-genuine' : 'verdict-counterfeit'}`;
-        verdictText.innerText = isGenuine ? "Genuine Product Verified" : "Counterfeit Product Detected";
+        verdictText.innerText = formatHeuristicLabel(result.prediction);
     }
 
     if (verdictIcon) {
@@ -443,7 +450,7 @@ function renderInlineResult(result) {
     });
 
     // Model Info
-    const formattedModel = result.model || "MobileNetV2 Transfer Learning";
+    const formattedModel = result.model || "Image-feature heuristic (unvalidated)";
     ["resultModel", "modelInfo"].forEach(id => {
         const elem = document.getElementById(id);
         if (elem) elem.innerText = formattedModel;
@@ -459,11 +466,8 @@ function renderInlineResult(result) {
     // Details breakdown
     const detectionDetailsText = document.getElementById("detectionDetailsText");
     if (detectionDetailsText) {
-        if (isGenuine) {
-            detectionDetailsText.innerHTML = `<strong>Status: Authentic Packaging Verified</strong><br>The PyTorch MobileNetV2 vision engine analyzed microscopic print sharpness, texture histogram distribution, and brand logo geometry. The product characteristics match genuine manufacturer benchmarks.`;
-        } else {
-            detectionDetailsText.innerHTML = `<strong>Status: High Counterfeit Risk</strong><br>The PyTorch MobileNetV2 vision engine detected texture anomalies, print blurriness, or color spectrum variations inconsistent with authentic manufacturer standards.`;
-        }
+        detectionDetailsText.textContent =
+            "Experimental image-feature heuristic: this score combines hand-designed sharpness, contrast, and colour statistics with generic ImageNet features when available. It is not a calibrated probability and does not verify product authenticity.";
     }
 
     resultSection.style.display = "block";
@@ -530,7 +534,7 @@ function displayResult() {
 
     if (verdictBanner && verdictText) {
         verdictBanner.className = `verdict-banner ${isGenuine ? 'verdict-genuine' : 'verdict-counterfeit'}`;
-        verdictText.innerText = isGenuine ? "Genuine Product Verified" : "Counterfeit Product Detected";
+        verdictText.innerText = formatHeuristicLabel(result.prediction);
     }
 
     if (verdictIcon) {
@@ -539,7 +543,7 @@ function displayResult() {
 
     const predictionStatus = document.getElementById("predictionStatus");
     if (predictionStatus) {
-        predictionStatus.innerText = isGenuine ? "Genuine" : "Counterfeit";
+        predictionStatus.innerText = formatHeuristicLabel(result.prediction);
         predictionStatus.className = `prediction-status ${isGenuine ? 'genuine' : 'counterfeit'}`;
     }
 
@@ -558,7 +562,7 @@ function displayResult() {
     });
 
     // Model Info
-    const formattedModel = result.model || "MobileNetV2 Transfer Learning";
+    const formattedModel = result.model || "Image-feature heuristic (unvalidated)";
     ["modelInfo", "resultModel"].forEach(id => {
         const elem = document.getElementById(id);
         if (elem) elem.innerText = formattedModel;
@@ -574,11 +578,8 @@ function displayResult() {
     // Breakdown Details
     const detectionDetailsText = document.getElementById("detectionDetailsText");
     if (detectionDetailsText) {
-        if (isGenuine) {
-            detectionDetailsText.innerHTML = `<strong>Status: Authentic Packaging Verified</strong><br>The PyTorch MobileNetV2 vision engine analyzed microscopic print sharpness, texture histogram distribution, and brand logo geometry. The product characteristics match genuine manufacturer benchmarks.`;
-        } else {
-            detectionDetailsText.innerHTML = `<strong>Status: High Counterfeit Risk</strong><br>The PyTorch MobileNetV2 vision engine detected texture anomalies, print blurriness, or color spectrum variations inconsistent with authentic manufacturer standards.`;
-        }
+        detectionDetailsText.textContent =
+            "Experimental image-feature heuristic: this score combines hand-designed sharpness, contrast, and colour statistics with generic ImageNet features when available. It is not a calibrated probability and does not verify product authenticity.";
     }
 }
 
@@ -618,7 +619,7 @@ async function displayHistory() {
                 <td>
                     <span class="badge ${badgeClass}">
                         <i class="fa-solid ${badgeIcon}"></i>
-                        <span>${latestLocal.prediction}</span>
+                        <span>${formatHeuristicLabel(latestLocal.prediction)}</span>
                     </span>
                 </td>
                 <td>
@@ -691,7 +692,7 @@ async function displayHistory() {
                 <td>
                     <span class="badge ${badgeClass}">
                         <i class="fa-solid ${badgeIcon}"></i>
-                        <span>${record.prediction}</span>
+                        <span>${formatHeuristicLabel(record.prediction)}</span>
                     </span>
                 </td>
                 <td>
@@ -945,7 +946,7 @@ async function initializeAdminDashboard() {
                     <td>
                         <span class="badge ${badgeClass}">
                             <i class="fa-solid ${badgeIcon}"></i>
-                            <span>${record.prediction}</span>
+                            <span>${formatHeuristicLabel(record.prediction)}</span>
                         </span>
                     </td>
                     <td>
