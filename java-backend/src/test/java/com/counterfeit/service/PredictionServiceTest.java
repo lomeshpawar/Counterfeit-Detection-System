@@ -106,7 +106,7 @@ class PredictionServiceTest {
     void doesNotPersistWhenAiServiceReturnsNon2xxResponse() {
         when(restTemplate.postForEntity(
                 eq(AI_SERVICE_URL), any(HttpEntity.class), eq(Map.class)
-        )).thenReturn(ResponseEntity.<Map>status(HttpStatus.SERVICE_UNAVAILABLE).build());
+        )).thenReturn(new ResponseEntity<Map>(null, HttpStatus.SERVICE_UNAVAILABLE));
 
         assertThrows(
                 PredictionAnalysisUnavailableException.class,
