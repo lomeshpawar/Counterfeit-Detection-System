@@ -2,6 +2,7 @@ package com.counterfeit.controller;
 
 import com.counterfeit.dto.DashboardStats;
 import com.counterfeit.dto.PredictionResponse;
+import com.counterfeit.service.PredictionAnalysisUnavailableException;
 import com.counterfeit.service.PredictionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,6 +128,10 @@ public class PredictionController {
         try {
             PredictionResponse result = predictionService.analyzeAndSave(file, userId, category);
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        } catch (PredictionAnalysisUnavailableException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
         } catch (Exception e) {
             LOGGER.error("Failed to analyze uploaded product image", e);
             Map<String, String> error = new HashMap<>();
