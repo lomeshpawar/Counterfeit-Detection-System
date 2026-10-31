@@ -164,6 +164,27 @@ class PredictionServiceTest {
         assertFalse(Files.exists(uploadDirectory));
     }
 
+    @Test
+    void removesStoredImageWhenPredictionHistoryPersistenceFails() throws Exception {
+        whenAiReturns(Map.of(
+                "prediction", "Genuine",
+                "confidence", 92.5,
+                "model_used", "Computer Vision Texture Inspector"
+        ));
+        when(predictionRepository.save(any(PredictionHistory.class)))
+                .thenThrow(new IllegalStateException("database unavailable"));
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> predictionService.analyzeAndSave(image(), null, "footwear")
+        );
+
+        verify(predictionRepository).save(any(PredictionHistory.class));
+        try (Stream<Path> files = Files.list(uploadDirectory)) {
+            assertEquals(0, files.count());
+        }
+    }
+
     private void whenAiReturns(Map<String, Object> response) {
         ResponseEntity<Map> aiResponse = new ResponseEntity<Map>(response, HttpStatus.OK);
         when(restTemplate.postForEntity(
