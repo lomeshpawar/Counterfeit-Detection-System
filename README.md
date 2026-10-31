@@ -71,7 +71,7 @@ Counterfeit-Detection-System/
 ### Option A — Docker Compose
 
 1. Install Docker Desktop.
-2. Copy the example environment file and replace all placeholders with local values:
+2. Copy the example environment file, then set non-empty local values for both `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD` in `.env`. The template intentionally leaves them empty so Compose refuses to start until you configure them:
 
    ```powershell
    Copy-Item .env.example .env
@@ -83,14 +83,15 @@ Counterfeit-Detection-System/
    docker compose up --build
    ```
 
-Review `docker-compose.yml` and `.env.example` for the exact ports and required variables before starting.
+Review `docker-compose.yml` and `.env.example` for the exact ports and required variables before starting. Compose requires explicit database passwords; it does not provide a fallback password.
 
 ### Option B — Run components separately
 
 1. Start MySQL and apply the SQL scripts under `database/`.
 2. Start the Python service using its requirements file and documented entry point.
-3. Start the Java backend from `java-backend/` with `mvn spring-boot:run`.
-4. Serve the `frontend/` directory with VS Code Live Server or another static server.
+3. Before starting the Java backend, set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` in your local shell or deployment environment. The Spring configuration intentionally has no username/password fallback. Use a dedicated least-privilege database account rather than `root`.
+4. Start the Java backend from `java-backend/` with `mvn spring-boot:run`.
+5. Serve the `frontend/` directory with VS Code Live Server or another static server. The default CORS allowlist includes `http://localhost:5500` and `http://127.0.0.1:5500` for Live Server; set `CORS_ALLOWED_ORIGINS` explicitly if your frontend uses a different host or port.
 
 The frontend's API base URL is currently hard-coded to `http://localhost:8081/api` in `frontend/js/script.js`. For a public deployment, change it to the deployed API's HTTPS base URL and confirm backend CORS and upload-storage configuration. Never put database credentials, passwords, tokens, or private keys in frontend code.
 
@@ -119,4 +120,3 @@ Academic full-stack project under development. The static frontend has a GitHub 
 ## Author
 
 **Lomesh Pawar** · [GitHub](https://github.com/lomeshpawar)
-
