@@ -1,6 +1,7 @@
 package com.counterfeit.controller;
 
 import com.counterfeit.dto.PredictionResponse;
+import com.counterfeit.service.PredictionAnalysisUnavailableException;
 import com.counterfeit.service.PredictionService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -110,6 +111,22 @@ class PredictionControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertInstanceOf(Map.class, response.getBody());
         verifyNoInteractions(predictionService);
+    }
+
+    @Test
+    void returnsServiceUnavailableWhenAiAnalysisCannotBeCompleted() throws Exception {
+        MockMultipartFile file = pngImage("product.png", 32, 32);
+        when(predictionService.analyzeAndSave(file, 42L, "footwear"))
+                .thenThrow(new PredictionAnalysisUnavailableException());
+
+        ResponseEntity<?> response = predictionController.analyzeProductImage(file, 42L, "footwear");
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertInstanceOf(Map.class, response.getBody());
+        assertEquals(
+                "AI analysis is temporarily unavailable. Please try again later.",
+                ((Map<?, ?>) response.getBody()).get("error")
+        );
     }
 
     private MockMultipartFile pngImage(String filename, int width, int height) throws IOException {
