@@ -102,9 +102,9 @@ public class PredictionService {
         history.setModelUsed(predictionResult.modelUsed());
         history.setPredictedAt(LocalDateTime.now());
 
+        PredictionHistory saved;
         try {
-            PredictionHistory saved = predictionRepository.save(history);
-            return convertToResponse(saved);
+            saved = predictionRepository.save(history);
         } catch (RuntimeException persistenceFailure) {
             try {
                 Files.deleteIfExists(savedFile);
@@ -113,6 +113,7 @@ public class PredictionService {
             }
             throw persistenceFailure;
         }
+        return convertToResponse(saved);
     }
 
     private PredictionResult requestPrediction(byte[] imageBytes, String originalFilename) {
