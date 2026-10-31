@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,6 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -108,7 +106,7 @@ class PredictionServiceTest {
     void doesNotPersistWhenAiServiceReturnsNon2xxResponse() {
         when(restTemplate.postForEntity(
                 eq(AI_SERVICE_URL), any(HttpEntity.class), eq(Map.class)
-        )).thenReturn(new ResponseEntity<>(null, HttpStatus.SERVICE_UNAVAILABLE));
+        )).thenReturn(ResponseEntity.<Map>status(HttpStatus.SERVICE_UNAVAILABLE).build());
 
         assertThrows(
                 PredictionAnalysisUnavailableException.class,
@@ -133,9 +131,26 @@ class PredictionServiceTest {
     }
 
     @Test
-    void rejectsUnsupportedLabelAndOutOfRangeConfidence() {
+    void rejectsUnsupportedPredictionLabelWithoutPersisting() {
         whenAiReturns(Map.of(
                 "prediction", "Unknown",
+                "confidence", 92.5,
+                "model_used", "Experimental heuristic"
+        ));
+
+        assertThrows(
+                PredictionAnalysisUnavailableException.class,
+                () -> predictionService.analyzeAndSave(image(), null, "footwear")
+        );
+
+        verifyNoInteractions(predictionRepository, userRepository);
+        assertFalse(Files.exists(uploadDirectory));
+    }
+
+    @Test
+    void rejectsOutOfRangeConfidenceWithoutPersisting() {
+        whenAiReturns(Map.of(
+                "prediction", "Genuine",
                 "confidence", 140.0,
                 "model_used", "Experimental heuristic"
         ));
