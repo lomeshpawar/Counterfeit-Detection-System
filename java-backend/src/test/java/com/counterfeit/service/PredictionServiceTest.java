@@ -165,9 +165,10 @@ class PredictionServiceTest {
     }
 
     private void whenAiReturns(Map<String, Object> response) {
+        ResponseEntity<Map> aiResponse = new ResponseEntity<Map>(response, HttpStatus.OK);
         when(restTemplate.postForEntity(
                 eq(AI_SERVICE_URL), any(HttpEntity.class), eq(Map.class)
-        )).thenReturn(ResponseEntity.ok(response));
+        )).thenReturn(aiResponse);
     }
 
     private MockMultipartFile image() {
