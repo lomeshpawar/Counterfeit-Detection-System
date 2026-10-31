@@ -97,7 +97,7 @@
                 </h1>
 
                 <p class="section-subtitle">
-                    View and search all previous product image analysis records, AI confidence metrics, and verification timestamps.
+                    View previous experimental image-analysis records, heuristic scores, and timestamps. These labels are not verified authenticity decisions.
                 </p>
             </div>
 
@@ -111,7 +111,7 @@
                         type="text"
                         id="historySearch"
                         class="search-box"
-                        placeholder="Search history by prediction, ID, or confidence..."
+                        placeholder="Search history by heuristic label, ID, or score..."
                         onkeyup="searchHistory()"
                     >
                 </div>
@@ -137,8 +137,8 @@
                             <tr>
                                 <th style="width: 80px;"># ID</th>
                                 <th style="width: 130px;"><i class="fa-solid fa-image"></i> Product Image</th>
-                                <th><i class="fa-solid fa-shield-halved"></i> AI Prediction</th>
-                                <th><i class="fa-solid fa-chart-simple"></i> Confidence Score</th>
+                                <th><i class="fa-solid fa-shield-halved"></i> Heuristic label</th>
+                                <th><i class="fa-solid fa-chart-simple"></i> Heuristic score (not probability)</th>
                                 <th><i class="fa-solid fa-clock"></i> Date & Timestamp</th>
                             </tr>
                         </thead>
@@ -185,7 +185,7 @@
                     <span>Counter<span class="logo-accent">Check</span></span>
                 </a>
                 <p class="footer-tagline">
-                    AI-Driven Counterfeit Product Identification & Verification Platform.
+                    Experimental product image-analysis prototype — not a verified counterfeit detector.
                 </p>
                 <div class="system-status-pill">
                     <span class="status-dot"></span>
