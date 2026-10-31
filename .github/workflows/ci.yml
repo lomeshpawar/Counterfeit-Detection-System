@@ -49,7 +49,7 @@ jobs:
       - name: Compile Python sources
         run: python -m py_compile app.py predict.py train_model.py
 
-  frontend:
+  frontend-ui-check:
     name: Frontend JavaScript syntax
     runs-on: ubuntu-latest
     steps:
