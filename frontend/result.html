@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Product Analysis Result — CounterCheck AI</title>
+    <title>Image Analysis Result — CounterCheck Prototype</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -122,13 +122,13 @@
                         <!-- Verdict Banner -->
                         <div class="verdict-banner verdict-genuine" id="verdictBanner">
                             <i class="fa-solid fa-shield-check" id="verdictIcon"></i>
-                            <span id="verdictText">Genuine Product Verified</span>
+                            <span id="verdictText">Experimental heuristic result</span>
                         </div>
 
                         <!-- Metric Rows -->
                         <div class="result-metric-row">
                             <div class="metric-item">
-                                <span class="metric-label"><i class="fa-solid fa-chart-simple"></i> Confidence Score</span>
+                                <span class="metric-label"><i class="fa-solid fa-chart-simple"></i> Heuristic score (not probability)</span>
                                 <span class="metric-value" id="confidenceScore">97.5%</span>
                             </div>
                             <div class="metric-item">
@@ -140,7 +140,7 @@
                         <div class="result-metric-row">
                             <div class="metric-item">
                                 <span class="metric-label"><i class="fa-solid fa-brain"></i> AI Neural Model</span>
-                                <span class="metric-value" id="modelInfo">MobileNetV2 Transfer Learning</span>
+                                <span class="metric-value" id="modelInfo">Image-feature heuristic (unvalidated)</span>
                             </div>
                             <div class="metric-item">
                                 <span class="metric-label"><i class="fa-regular fa-clock"></i> Timestamp</span>
@@ -175,7 +175,7 @@
                     </div>
                     <h2>No Recent Product Analysis Found</h2>
                     <p style="color: var(--text-secondary); max-width: 500px; margin: 10px auto 25px;">
-                        Upload a product image to inspect micro-print details, edge sharpness, and texture feature metrics with our PyTorch MobileNetV2 vision model.
+                        Upload a product image to inspect sharpness, contrast, and colour features with the experimental image-analysis heuristic. This does not establish product authenticity.
                     </p>
                     <a href="upload.html" class="btn btn-primary">
                         <i class="fa-solid fa-upload"></i> Upload & Analyze Image Now
@@ -202,11 +202,11 @@
                     <span>Counter<span class="logo-accent">Check</span></span>
                 </a>
                 <p class="footer-tagline">
-                    AI-Driven Counterfeit Product Identification & Verification Platform.
+                    Experimental product image-analysis prototype — not a verified counterfeit detector.
                 </p>
                 <div class="system-status-pill">
                     <span class="status-dot"></span>
-                    <span>All Systems Operational (Spring Boot 8081 & AI 5000)</span>
+                    <span>Demo services require separate configuration and availability</span>
                 </div>
             </div>
 
