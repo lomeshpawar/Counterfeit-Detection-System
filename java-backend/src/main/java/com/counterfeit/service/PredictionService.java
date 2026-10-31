@@ -6,11 +6,12 @@ import com.counterfeit.entity.PredictionHistory;
 import com.counterfeit.entity.User;
 import com.counterfeit.repository.PredictionHistoryRepository;
 import com.counterfeit.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -18,23 +19,31 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * The PredictionService handles uploading product images, integrating with the Flask AI Microservice,
- * storing analysis results in MySQL, and serving prediction history.
+ * Coordinates image analysis through the Flask service and persists validated results.
  */
 @Service
 public class PredictionService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PredictionService.class);
+    private static final Set<String> ALLOWED_PREDICTIONS = Set.of("Genuine", "Counterfeit");
+    private static final BigDecimal MIN_CONFIDENCE = BigDecimal.ZERO;
+    private static final BigDecimal MAX_CONFIDENCE = new BigDecimal("100.00");
 
     private final PredictionHistoryRepository predictionRepository;
     private final UserRepository userRepository;
@@ -55,38 +64,61 @@ public class PredictionService {
     }
 
     /**
-     * Analyzes an uploaded product image using the AI Microservice and saves the result to MySQL.
+     * Saves an image and history record only after the AI service returns a valid result.
      */
     public PredictionResponse analyzeAndSave(MultipartFile file, Long userId, String category) throws IOException {
-        // 1. Ensure upload directory exists
-        File dir = new File(uploadDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
+        byte[] imageBytes = file.getBytes();
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isBlank()) {
+            originalFilename = "product-image";
         }
 
-        // 2. Save file locally with unique name
-        String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "product.jpg";
-        String uniqueFilename = UUID.randomUUID().toString() + "_" + originalFilename;
-        File savedFile = new File(dir, uniqueFilename);
-        
-        try (FileOutputStream fos = new FileOutputStream(savedFile)) {
-            fos.write(file.getBytes());
+        PredictionResult predictionResult = requestPrediction(imageBytes, originalFilename);
+
+        User user = null;
+        if (userId != null) {
+            user = userRepository.findById(userId).orElse(null);
         }
 
+        Path uploadDirectory = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Files.createDirectories(uploadDirectory);
+
+        String uniqueFilename = UUID.randomUUID() + safeExtension(originalFilename);
+        Path savedFile = uploadDirectory.resolve(uniqueFilename).normalize();
+        if (!savedFile.startsWith(uploadDirectory)) {
+            throw new IOException("Invalid upload path.");
+        }
+
+        Files.write(savedFile, imageBytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         String webImagePath = "/uploads/" + uniqueFilename;
 
-        // 3. Call Python Flask AI Microservice
-        String prediction = "Genuine";
-        BigDecimal confidence = new BigDecimal("92.50");
-        String modelUsed = "MobileNetV2 Transfer Learning";
+        PredictionHistory history = new PredictionHistory();
+        history.setUser(user);
+        history.setImageName(originalFilename);
+        history.setImagePath(webImagePath);
+        history.setProductCategory(category != null ? category : "other");
+        history.setPrediction(predictionResult.prediction());
+        history.setConfidence(predictionResult.confidence());
+        history.setModelUsed(predictionResult.modelUsed());
+        history.setPredictedAt(LocalDateTime.now());
 
+        PredictionHistory saved;
         try {
-            HttpHeaders headers = new HttpHeaders();
-            // Note: Do NOT manually set headers.setContentType(MediaType.MULTIPART_FORM_DATA) here!
-            // RestTemplate's FormHttpMessageConverter will automatically detect MultiValueMap and 
-            // generate the proper Content-Type with dynamic multipart boundary string required by Flask/Werkzeug.
+            saved = predictionRepository.save(history);
+        } catch (RuntimeException persistenceFailure) {
+            try {
+                Files.deleteIfExists(savedFile);
+            } catch (IOException cleanupFailure) {
+                LOGGER.warn("Unable to remove uploaded image after persistence failure", cleanupFailure);
+            }
+            throw persistenceFailure;
+        }
+        return convertToResponse(saved);
+    }
 
-            ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+    private PredictionResult requestPrediction(byte[] imageBytes, String originalFilename) {
+        try {
+            ByteArrayResource fileResource = new ByteArrayResource(imageBytes) {
                 @Override
                 public String getFilename() {
                     return originalFilename;
@@ -96,48 +128,56 @@ public class PredictionService {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             body.add("image", fileResource);
 
-            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+            HttpEntity<MultiValueMap<String, Object>> requestEntity =
+                    new HttpEntity<>(body, new HttpHeaders());
             ResponseEntity<Map> response = restTemplate.postForEntity(aiServiceUrl, requestEntity, Map.class);
 
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                Map<String, Object> respBody = response.getBody();
-                if (respBody.containsKey("prediction")) {
-                    prediction = respBody.get("prediction").toString();
-                }
-                if (respBody.containsKey("confidence")) {
-                    confidence = new BigDecimal(respBody.get("confidence").toString()).setScale(2, RoundingMode.HALF_UP);
-                }
-                if (respBody.containsKey("model_used")) {
-                    modelUsed = respBody.get("model_used").toString();
-                }
+            if (response == null || !response.getStatusCode().is2xxSuccessful()
+                    || response.getBody() == null) {
+                throw new IllegalStateException("AI service returned no successful prediction response.");
             }
-        } catch (Exception e) {
-            System.err.println("⚠️ AI Service call failed (" + e.getMessage() + "). Running internal analyzer fallback.");
-            // Fallback estimation based on image file size & hash
-            double randomConf = 85.0 + (Math.abs(uniqueFilename.hashCode()) % 1300) / 100.0;
-            confidence = new BigDecimal(randomConf).setScale(2, RoundingMode.HALF_UP);
-            prediction = (uniqueFilename.hashCode() % 2 == 0) ? "Genuine" : "Counterfeit";
+
+            Map<String, Object> responseBody = response.getBody();
+            Object predictionValue = responseBody.get("prediction");
+            if (!(predictionValue instanceof String prediction)
+                    || !ALLOWED_PREDICTIONS.contains(prediction)) {
+                throw new IllegalStateException("AI service returned an unsupported prediction label.");
+            }
+
+            Object confidenceValue = responseBody.get("confidence");
+            if (confidenceValue == null) {
+                throw new IllegalStateException("AI service response is missing confidence.");
+            }
+
+            BigDecimal confidence = new BigDecimal(confidenceValue.toString())
+                    .setScale(2, RoundingMode.HALF_UP);
+            if (confidence.compareTo(MIN_CONFIDENCE) < 0
+                    || confidence.compareTo(MAX_CONFIDENCE) > 0) {
+                throw new IllegalStateException("AI service returned an out-of-range confidence value.");
+            }
+
+            Object modelValue = responseBody.get("model_used");
+            if (!(modelValue instanceof String modelUsed)
+                    || modelUsed.isBlank()
+                    || modelUsed.length() > 100) {
+                throw new IllegalStateException("AI service response contains an invalid model identifier.");
+            }
+
+            return new PredictionResult(prediction, confidence, modelUsed);
+        } catch (Exception analysisFailure) {
+            LOGGER.error("AI service call failed or returned an invalid prediction response", analysisFailure);
+            throw new PredictionAnalysisUnavailableException();
+        }
+    }
+
+    private String safeExtension(String filename) {
+        int extensionStart = filename.lastIndexOf('.');
+        if (extensionStart < 0) {
+            return ".img";
         }
 
-        // 4. Find user or assign system user
-        User user = null;
-        if (userId != null) {
-            user = userRepository.findById(userId).orElse(null);
-        }
-
-        // 5. Create & Save Prediction Entity
-        PredictionHistory history = new PredictionHistory();
-        history.setUser(user);
-        history.setImageName(originalFilename);
-        history.setImagePath(webImagePath);
-        history.setProductCategory(category != null ? category : "other");
-        history.setPrediction(prediction);
-        history.setConfidence(confidence);
-        history.setModelUsed(modelUsed);
-        history.setPredictedAt(LocalDateTime.now());
-
-        PredictionHistory saved = predictionRepository.save(history);
-        return convertToResponse(saved);
+        String extension = filename.substring(extensionStart).toLowerCase(Locale.ROOT);
+        return extension.matches("\\.[a-z0-9]{1,8}") ? extension : ".img";
     }
 
     public List<PredictionResponse> getUserHistory(Long userId) {
@@ -167,24 +207,27 @@ public class PredictionService {
         return new DashboardStats(totalUsers, totalPredictions, genuineCount, counterfeitCount);
     }
 
-    private PredictionResponse convertToResponse(PredictionHistory ph) {
+    private PredictionResponse convertToResponse(PredictionHistory history) {
         PredictionResponse response = new PredictionResponse();
-        response.setId(ph.getId());
+        response.setId(history.getId());
 
-        if (ph.getUser() != null) {
-            response.setUserName(ph.getUser().getName());
+        if (history.getUser() != null) {
+            response.setUserName(history.getUser().getName());
         } else {
             response.setUserName("Guest User");
         }
 
-        response.setImageName(ph.getImageName());
-        response.setImagePath(ph.getImagePath());
-        response.setProductCategory(ph.getProductCategory());
-        response.setPrediction(ph.getPrediction());
-        response.setConfidence(ph.getConfidence());
-        response.setModelUsed(ph.getModelUsed());
-        response.setPredictedAt(ph.getPredictedAt());
+        response.setImageName(history.getImageName());
+        response.setImagePath(history.getImagePath());
+        response.setProductCategory(history.getProductCategory());
+        response.setPrediction(history.getPrediction());
+        response.setConfidence(history.getConfidence());
+        response.setModelUsed(history.getModelUsed());
+        response.setPredictedAt(history.getPredictedAt());
 
         return response;
+    }
+
+    private record PredictionResult(String prediction, BigDecimal confidence, String modelUsed) {
     }
 }
