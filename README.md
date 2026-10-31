@@ -120,6 +120,30 @@ The workflow `.github/workflows/pages.yml` publishes `frontend/` as a static sit
 - Model metrics and real-world counterfeit-detection accuracy should only be reported when supported by a repeatable evaluation on a documented dataset.
 - Do not upload sensitive product/customer data to a public demo.
 
+## Testing
+
+Run the checks from the repository root.
+
+**Java backend (Java 17):**
+
+```bash
+cd java-backend
+mvn -B verify
+```
+
+**Python AI service (Python 3.11):**
+
+```bash
+cd ai-service
+python -m pip install -r requirements.txt
+pytest -q
+python -m py_compile app.py predict.py train_model.py
+```
+
+The dedicated AI Service workflow also runs the tests under `tests/` and audits the pinned dependencies with `pip-audit -r requirements.txt`. Install `pip-audit` with `python -m pip install pip-audit` before running that audit locally.
+
+These commands validate builds, tests, syntax, and dependency advisories; they do not establish counterfeit-classification accuracy or product authenticity.
+
 ## Security
 
 - Keep `.env` local and never commit real credentials.
