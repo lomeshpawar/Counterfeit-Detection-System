@@ -19,6 +19,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -27,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -42,6 +47,12 @@ public class PredictionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PredictionService.class);
     private static final Set<String> ALLOWED_PREDICTIONS = Set.of("Genuine", "Counterfeit");
+    private static final Map<String, String> ALLOWED_IMAGE_EXTENSIONS = Map.of(
+            "jpeg", ".jpg",
+            "jpg", ".jpg",
+            "png", ".png",
+            "bmp", ".bmp"
+    );
     private static final BigDecimal MIN_CONFIDENCE = BigDecimal.ZERO;
     private static final BigDecimal MAX_CONFIDENCE = new BigDecimal("100.00");
 
@@ -73,6 +84,8 @@ public class PredictionService {
             originalFilename = "product-image";
         }
 
+        // Never derive a public file extension from the untrusted client filename.
+        String imageExtension = safeExtension(imageBytes);
         PredictionResult predictionResult = requestPrediction(imageBytes, originalFilename);
 
         User user = null;
@@ -83,7 +96,7 @@ public class PredictionService {
         Path uploadDirectory = Paths.get(uploadDir).toAbsolutePath().normalize();
         Files.createDirectories(uploadDirectory);
 
-        String uniqueFilename = UUID.randomUUID() + safeExtension(originalFilename);
+        String uniqueFilename = UUID.randomUUID() + imageExtension;
         Path savedFile = uploadDirectory.resolve(uniqueFilename).normalize();
         if (!savedFile.startsWith(uploadDirectory)) {
             throw new IOException("Invalid upload path.");
@@ -170,14 +183,33 @@ public class PredictionService {
         }
     }
 
-    private String safeExtension(String filename) {
-        int extensionStart = filename.lastIndexOf('.');
-        if (extensionStart < 0) {
-            return ".img";
-        }
+    /**
+     * Determines the stored extension from the image content, never from client-controlled metadata.
+     */
+    private String safeExtension(byte[] imageBytes) throws IOException {
+        try (ImageInputStream imageInput = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes))) {
+            if (imageInput == null) {
+                throw new IOException("Unsupported image content.");
+            }
 
-        String extension = filename.substring(extensionStart).toLowerCase(Locale.ROOT);
-        return extension.matches("\\.[a-z0-9]{1,8}") ? extension : ".img";
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(imageInput);
+            if (!readers.hasNext()) {
+                throw new IOException("Unsupported image format.");
+            }
+
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(imageInput, true, true);
+                String format = reader.getFormatName().toLowerCase(Locale.ROOT);
+                String extension = ALLOWED_IMAGE_EXTENSIONS.get(format);
+                if (extension == null) {
+                    throw new IOException("Unsupported image format.");
+                }
+                return extension;
+            } finally {
+                reader.dispose();
+            }
+        }
     }
 
     public List<PredictionResponse> getUserHistory(Long userId) {
