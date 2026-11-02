@@ -13,6 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -106,6 +108,7 @@ class PredictionServiceTest {
         PredictionResponse result = predictionService.analyzeAndSave(image, null, "footwear");
 
         assertTrue(result.getImagePath().endsWith(".png"));
+        assertEquals(MediaType.IMAGE_PNG, MediaTypeFactory.getMediaType(result.getImagePath()).orElseThrow());
         try (Stream<Path> files = Files.list(uploadDirectory)) {
             Path storedImage = files.findFirst().orElseThrow();
             assertTrue(storedImage.getFileName().toString().endsWith(".png"));
