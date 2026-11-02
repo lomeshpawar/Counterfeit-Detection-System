@@ -19,15 +19,21 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -65,7 +71,7 @@ class PredictionServiceTest {
 
     @Test
     void persistsOnlyAValidatedPredictionAndItsImage() throws Exception {
-        MockMultipartFile image = image();
+        MockMultipartFile image = image("shoe.png");
         Map<String, Object> aiResult = Map.of(
                 "prediction", "Genuine",
                 "confidence", 92.5,
@@ -87,6 +93,42 @@ class PredictionServiceTest {
     }
 
     @Test
+    void storesImageUsingValidatedContentFormatInsteadOfClientFilenameExtension() throws Exception {
+        MockMultipartFile image = image("payload.html");
+        whenAiReturns(Map.of(
+                "prediction", "Genuine",
+                "confidence", 92.5,
+                "model_used", "Computer Vision Texture Inspector"
+        ));
+        when(predictionRepository.save(any(PredictionHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        PredictionResponse result = predictionService.analyzeAndSave(image, null, "footwear");
+
+        assertTrue(result.getImagePath().endsWith(".png"));
+        try (Stream<Path> files = Files.list(uploadDirectory)) {
+            Path storedImage = files.findFirst().orElseThrow();
+            assertTrue(storedImage.getFileName().toString().endsWith(".png"));
+            assertArrayEquals(image.getBytes(), Files.readAllBytes(storedImage));
+        }
+    }
+
+    @Test
+    void rejectsUnsupportedImageContentBeforeCallingAiService() {
+        MockMultipartFile invalidImage = new MockMultipartFile(
+                "file", "payload.png", "image/png", new byte[]{1, 2, 3, 4}
+        );
+
+        assertThrows(
+                IOException.class,
+                () -> predictionService.analyzeAndSave(invalidImage, null, "footwear")
+        );
+
+        verifyNoInteractions(restTemplate, predictionRepository, userRepository);
+        assertFalse(Files.exists(uploadDirectory));
+    }
+
+    @Test
     void doesNotPersistOrStoreImageWhenAiServiceConnectionFails() {
         when(restTemplate.postForEntity(
                 eq(AI_SERVICE_URL), any(HttpEntity.class), eq(Map.class)
@@ -94,7 +136,7 @@ class PredictionServiceTest {
 
         PredictionAnalysisUnavailableException exception = assertThrows(
                 PredictionAnalysisUnavailableException.class,
-                () -> predictionService.analyzeAndSave(image(), null, "footwear")
+                () -> predictionService.analyzeAndSave(image("shoe.png"), null, "footwear")
         );
 
         assertEquals("AI analysis is temporarily unavailable. Please try again later.", exception.getMessage());
@@ -110,7 +152,7 @@ class PredictionServiceTest {
 
         assertThrows(
                 PredictionAnalysisUnavailableException.class,
-                () -> predictionService.analyzeAndSave(image(), null, "footwear")
+                () -> predictionService.analyzeAndSave(image("shoe.png"), null, "footwear")
         );
 
         verifyNoInteractions(predictionRepository, userRepository);
@@ -123,7 +165,7 @@ class PredictionServiceTest {
 
         assertThrows(
                 PredictionAnalysisUnavailableException.class,
-                () -> predictionService.analyzeAndSave(image(), null, "footwear")
+                () -> predictionService.analyzeAndSave(image("shoe.png"), null, "footwear")
         );
 
         verifyNoInteractions(predictionRepository, userRepository);
@@ -140,7 +182,7 @@ class PredictionServiceTest {
 
         assertThrows(
                 PredictionAnalysisUnavailableException.class,
-                () -> predictionService.analyzeAndSave(image(), null, "footwear")
+                () -> predictionService.analyzeAndSave(image("shoe.png"), null, "footwear")
         );
 
         verifyNoInteractions(predictionRepository, userRepository);
@@ -157,7 +199,7 @@ class PredictionServiceTest {
 
         assertThrows(
                 PredictionAnalysisUnavailableException.class,
-                () -> predictionService.analyzeAndSave(image(), null, "footwear")
+                () -> predictionService.analyzeAndSave(image("shoe.png"), null, "footwear")
         );
 
         verifyNoInteractions(predictionRepository, userRepository);
@@ -176,7 +218,7 @@ class PredictionServiceTest {
 
         assertThrows(
                 IllegalStateException.class,
-                () -> predictionService.analyzeAndSave(image(), null, "footwear")
+                () -> predictionService.analyzeAndSave(image("shoe.png"), null, "footwear")
         );
 
         verify(predictionRepository).save(any(PredictionHistory.class));
@@ -192,9 +234,16 @@ class PredictionServiceTest {
         )).thenReturn(aiResponse);
     }
 
-    private MockMultipartFile image() {
-        return new MockMultipartFile(
-                "file", "shoe.jpg", "image/jpeg", new byte[]{1, 2, 3, 4}
-        );
+    private MockMultipartFile image(String filename) {
+        try {
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            BufferedImage source = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
+            if (!ImageIO.write(source, "png", output)) {
+                throw new IllegalStateException("PNG writer is unavailable.");
+            }
+            return new MockMultipartFile("file", filename, "image/png", output.toByteArray());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to create test image.", exception);
+        }
     }
 }
