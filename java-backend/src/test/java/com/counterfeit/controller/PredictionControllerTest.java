@@ -114,6 +114,21 @@ class PredictionControllerTest {
     }
 
     @Test
+    void rejectsUnsupportedImageFormatBeforeCallingPredictionService() throws Exception {
+        MockMultipartFile file = gifImage("animated.gif");
+
+        ResponseEntity<?> response = predictionController.analyzeProductImage(file, 42L, "footwear");
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertInstanceOf(Map.class, response.getBody());
+        assertEquals(
+                "Only JPEG, PNG, and BMP images are supported.",
+                ((Map<?, ?>) response.getBody()).get("error")
+        );
+        verifyNoInteractions(predictionService);
+    }
+
+    @Test
     void returnsServiceUnavailableWhenAiAnalysisCannotBeCompleted() throws Exception {
         MockMultipartFile file = pngImage("product.png", 32, 32);
         when(predictionService.analyzeAndSave(file, 42L, "footwear"))
@@ -127,6 +142,15 @@ class PredictionControllerTest {
                 "AI analysis is temporarily unavailable. Please try again later.",
                 ((Map<?, ?>) response.getBody()).get("error")
         );
+    }
+
+    private MockMultipartFile gifImage(String filename) throws IOException {
+        BufferedImage image = new BufferedImage(2, 2, BufferedImage.TYPE_BYTE_INDEXED);
+        ByteArrayOutputStream imageBytes = new ByteArrayOutputStream();
+        if (!ImageIO.write(image, "gif", imageBytes)) {
+            throw new IOException("GIF writer is unavailable.");
+        }
+        return new MockMultipartFile("file", filename, "image/gif", imageBytes.toByteArray());
     }
 
     private MockMultipartFile pngImage(String filename, int width, int height) throws IOException {
