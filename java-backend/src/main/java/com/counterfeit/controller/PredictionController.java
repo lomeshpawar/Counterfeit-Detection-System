@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * PredictionController exposes endpoints for analyzing product images, retrieving history, and admin controls.
@@ -32,6 +34,7 @@ public class PredictionController {
     private static final int MAX_IMAGE_WIDTH = 4096;
     private static final int MAX_IMAGE_HEIGHT = 4096;
     private static final long MAX_IMAGE_PIXELS = 12_000_000L;
+    private static final Set<String> ALLOWED_IMAGE_FORMATS = Set.of("jpeg", "jpg", "png", "bmp");
 
     private final PredictionService predictionService;
 
@@ -61,21 +64,6 @@ public class PredictionController {
             return ResponseEntity.badRequest().body(error);
         }
 
-        // Validate Image MIME Content Type or File Extension.
-        String contentType = file.getContentType();
-        String originalFilename = file.getOriginalFilename();
-        String lowerFilename = originalFilename != null ? originalFilename.toLowerCase() : "";
-
-        boolean isImageMime = contentType != null && contentType.toLowerCase().startsWith("image/");
-        boolean isImageExt = lowerFilename.endsWith(".jpg") || lowerFilename.endsWith(".jpeg")
-                || lowerFilename.endsWith(".png") || lowerFilename.endsWith(".webp") || lowerFilename.endsWith(".bmp");
-
-        if (!isImageMime && !isImageExt) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Invalid file format. Only JPG, JPEG, PNG, and WebP images are permitted.");
-            return ResponseEntity.badRequest().body(error);
-        }
-
         // Inspect dimensions from image metadata before allocating the decoded pixel buffer.
         try (InputStream inputStream = file.getInputStream();
              ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
@@ -96,6 +84,13 @@ public class PredictionController {
             ImageReader reader = readers.next();
             try {
                 reader.setInput(imageInputStream, true, true);
+                String imageFormat = reader.getFormatName().toLowerCase(Locale.ROOT);
+                if (!ALLOWED_IMAGE_FORMATS.contains(imageFormat)) {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("error", "Only JPEG, PNG, and BMP images are supported.");
+                    return ResponseEntity.badRequest().body(error);
+                }
+
                 int width = reader.getWidth(0);
                 int height = reader.getHeight(0);
                 long pixelCount = (long) width * height;
