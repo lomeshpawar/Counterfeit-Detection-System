@@ -117,6 +117,33 @@ class PredictionServiceTest {
     }
 
     @Test
+    void storesNestedTraversalStyleClientFilenameOnlyInsideUploadDirectory() throws Exception {
+        MockMultipartFile image = image("nested/../../outside.png");
+        whenAiReturns(Map.of(
+                "prediction", "Genuine",
+                "confidence", 92.5,
+                "model_used", "Computer Vision Texture Inspector"
+        ));
+        when(predictionRepository.save(any(PredictionHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        PredictionResponse result = predictionService.analyzeAndSave(image, null, "footwear");
+
+        Path normalizedUploadDirectory = uploadDirectory.toAbsolutePath().normalize();
+        Path storedFile = normalizedUploadDirectory
+                .resolve(Path.of(result.getImagePath()).getFileName())
+                .normalize();
+
+        assertEquals(normalizedUploadDirectory, storedFile.getParent());
+        assertTrue(Files.isRegularFile(storedFile));
+        assertFalse(Files.exists(tempDirectory.resolve("outside.png")));
+
+        try (Stream<Path> files = Files.list(normalizedUploadDirectory)) {
+            assertEquals(1, files.count());
+        }
+    }
+
+    @Test
     void rejectsUnsupportedImageContentBeforeCallingAiService() {
         MockMultipartFile invalidImage = new MockMultipartFile(
                 "file", "payload.png", "image/png", new byte[]{1, 2, 3, 4}
