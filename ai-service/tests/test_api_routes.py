@@ -79,3 +79,61 @@ def test_predict_returns_500_for_unexpected_prediction_error(client):
     assert response.status_code == 500
     assert response.get_json()["error"] == "Prediction service failed to process the image."
     assert "internal detail" not in response.get_data(as_text=True)
+
+
+def test_cors_allows_configured_local_origin(client):
+    origin = "http://localhost:5173"
+
+    response = client.get("/health", headers={"Origin": origin})
+
+    assert response.status_code == 200
+    assert response.headers.get("Access-Control-Allow-Origin") == origin
+
+
+def test_cors_allows_vscode_live_server_origins(client):
+    for origin in ("http://localhost:5500", "http://127.0.0.1:5500"):
+        response = client.get("/health", headers={"Origin": origin})
+
+        assert response.status_code == 200
+        assert response.headers.get("Access-Control-Allow-Origin") == origin
+
+
+def test_cors_does_not_allow_unconfigured_origin(client):
+    response = client.get(
+        "/health",
+        headers={"Origin": "https://untrusted.example"},
+    )
+
+    assert response.status_code == 200
+    assert "Access-Control-Allow-Origin" not in response.headers
+
+
+def test_cors_preflight_allows_configured_local_origin(client):
+    origin = "http://localhost:5173"
+
+    response = client.options(
+        "/predict",
+        headers={
+            "Origin": origin,
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type",
+        },
+    )
+
+    assert response.status_code in (200, 204)
+    assert response.headers.get("Access-Control-Allow-Origin") == origin
+    assert "POST" in response.headers.get("Access-Control-Allow-Methods", "")
+
+
+def test_cors_preflight_does_not_allow_unconfigured_origin(client):
+    response = client.options(
+        "/predict",
+        headers={
+            "Origin": "https://untrusted.example",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type",
+        },
+    )
+
+    assert response.status_code in (200, 204)
+    assert "Access-Control-Allow-Origin" not in response.headers
