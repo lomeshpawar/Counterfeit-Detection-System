@@ -109,6 +109,36 @@ The frontend's API base URL is currently hard-coded to `http://localhost:8081/ap
 
 The workflow `.github/workflows/pages.yml` publishes `frontend/` as a static site. After changes are pushed to `main`, inspect the repository's **Actions** tab and confirm the latest **Deploy Frontend to GitHub Pages** run succeeds.
 
+## Automated tests and validation
+
+Run the checks from the repository root. They match the commands used by the current GitHub Actions workflows.
+
+**Java backend:**
+
+```bash
+cd java-backend
+mvn -B verify
+```
+
+**Python AI service:**
+
+```bash
+cd ai-service
+python -m pip install -r requirements.txt
+python -m pytest -q
+python -m py_compile app.py predict.py train_model.py
+```
+
+The dedicated AI Service CI workflow also audits the pinned Python requirements and runs the tests under `ai-service/tests/`:
+
+```bash
+python -m pip install pip-audit
+pip-audit -r requirements.txt
+python -m pytest -q tests
+```
+
+These checks validate the current automated backend and Python test suites, Python source compilation, and the dependency audit. They do **not** provide browser end-to-end coverage or establish counterfeit-detection accuracy. Review the latest workflow runs in the [Actions tab](https://github.com/lomeshpawar/Counterfeit-Detection-System/actions) for the result on the commit you intend to use.
+
 ## Validation and limitations
 
 - CI runs automated repository checks; review the Actions tab for the latest result rather than assuming every workflow is green.
