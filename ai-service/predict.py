@@ -1,9 +1,9 @@
 """
-============================================================
-CounterCheck AI Service - Product Authenticity Classifier
-============================================================
-Model: MobileNetV2 / Computer Vision Texture Classifier
-============================================================
+CounterCheck AI service - image-feature heuristic for product authenticity demos.
+
+This prototype combines generic ImageNet MobileNetV2 outputs with hand-designed
+image statistics. It is not a counterfeit-specific trained or validated model,
+and its returned confidence value is a heuristic score, not calibrated probability.
 """
 
 import io
@@ -20,9 +20,7 @@ except ImportError:
 
 
 class ProductClassifier:
-    """
-    MobileNetV2 / Vision Classifier for Counterfeit Product Detection.
-    """
+    """Prototype image-feature heuristic; not a validated authenticity classifier."""
 
     def __init__(self):
         self.model = None
@@ -39,67 +37,67 @@ class ProductClassifier:
                         std=[0.229, 0.224, 0.225]
                     )
                 ])
-                print("[AI] PyTorch MobileNetV2 model active.")
+                print("[AI] Pretrained ImageNet MobileNetV2 feature signal enabled.")
             except Exception as e:
                 print(f"[AI] PyTorch weights fallback: {e}")
         else:
-            print("[AI] Running in Pillow Texture & Edge Feature Inspection mode.")
+            print("[AI] Running in Pillow texture and edge heuristic mode.")
 
     def analyze_image(self, image_bytes):
-        image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-        # 1. Image Quality, Detail & Texture Analytics
-        gray_img = image.convert('L')
-
-        # Edge & Sharpness (Laplacian-like variance via FIND_EDGES)
+        # Image quality, detail, and texture analytics
+        gray_img = image.convert("L")
         edges = gray_img.filter(ImageFilter.FIND_EDGES)
         edge_stat = ImageStat.Stat(edges)
         edge_std = edge_stat.stddev[0]
-        edge_mean = edge_stat.mean[0]
 
-        # Color Variance & Richness
         color_stat = ImageStat.Stat(image)
         color_std_avg = sum(color_stat.stddev) / 3.0
 
-        # Contrast / Brightness Std Dev
         gray_stat = ImageStat.Stat(gray_img)
         contrast = gray_stat.stddev[0]
 
-        # 2. Deep Learning Feature Analysis (MobileNetV2 feature activation variance)
+        # Generic ImageNet top-class probability is only a weak feature signal.
+        # It does not directly estimate product authenticity.
         mobilenet_score = 0.5
         if self.model is not None and HAS_TORCH:
             try:
                 with torch.no_grad():
                     input_tensor = self.transform(image).unsqueeze(0)
                     output = self.model(input_tensor)
-                    # Use softmax peak probability / activation entropy balance
                     probs = torch.softmax(output, dim=1)
                     top_prob, _ = torch.max(probs, dim=1)
                     mobilenet_score = top_prob.item()
             except Exception:
                 mobilenet_score = 0.5
 
-        # Normalize metrics (higher detail/sharpness/contrast = authentic high-print quality)
+        # Hand-designed heuristic weights; these are not learned from a
+        # labelled genuine/counterfeit training dataset.
         sharpness_norm = min(max((edge_std - 8.0) / 30.0, 0.0), 1.0)
         contrast_norm = min(max((contrast - 15.0) / 45.0, 0.0), 1.0)
         color_norm = min(max((color_std_avg - 12.0) / 40.0, 0.0), 1.0)
 
-        # Composite Authenticity Index (0.0 to 1.0)
-        combined_score = (sharpness_norm * 0.40) + (contrast_norm * 0.25) + (color_norm * 0.20) + (mobilenet_score * 0.15)
+        combined_score = (
+            sharpness_norm * 0.40
+            + contrast_norm * 0.25
+            + color_norm * 0.20
+            + mobilenet_score * 0.15
+        )
 
-        # Threshold: >= 0.45 -> Genuine, < 0.45 -> Counterfeit
         is_genuine = combined_score >= 0.45
-
         if is_genuine:
             prediction = "Genuine"
-            confidence = round(80.0 + (combined_score * 18.5), 2)
-            confidence = min(confidence, 98.50)
-            model_name = "MobileNetV2 Transfer Learning" if HAS_TORCH else "Computer Vision Texture Inspector"
+            confidence = min(round(80.0 + (combined_score * 18.5), 2), 98.50)
         else:
             prediction = "Counterfeit"
-            confidence = round(80.0 + ((1.0 - combined_score) * 17.5), 2)
-            confidence = min(confidence, 97.50)
-            model_name = "MobileNetV2 Transfer Learning" if HAS_TORCH else "Computer Vision Texture Inspector"
+            confidence = min(round(80.0 + ((1.0 - combined_score) * 17.5), 2), 97.50)
+
+        model_name = (
+            "MobileNetV2 ImageNet + texture heuristic (unvalidated)"
+            if self.model is not None and HAS_TORCH
+            else "Computer vision texture heuristic (unvalidated)"
+        )
 
         return {
             "prediction": prediction,

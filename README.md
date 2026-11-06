@@ -36,6 +36,21 @@ The current `main` branch is an experimental prototype and has important securit
 
 Do not use this prototype to make real-world product-authenticity, purchasing, safety, or enforcement decisions.
 
+## AI model limitations
+
+The current image-analysis service is an experimental heuristic, not a validated counterfeit classifier. It combines generic pretrained MobileNetV2 ImageNet output (when the optional PyTorch dependency is available) with hand-designed image sharpness, contrast, and colour statistics. It has not been trained or evaluated as a genuine-versus-counterfeit classifier on a labelled dataset. The API's `confidence` value is a heuristic score, not a calibrated probability, and must not be treated as proof of product authenticity.
+
+## Evaluation roadmap
+
+The following work is planned; none of these items is claimed as implemented:
+
+- Select a documented, appropriately licensed dataset with genuine and counterfeit labels.
+- Define product/source-aware training, validation, and held-out test splits to reduce data leakage.
+- Train a counterfeit-specific baseline and compare it with the current heuristic.
+- Publish a reproducible evaluation using suitable held-out metrics (for example, precision, recall, F1-score, and a confusion matrix).
+- Calibrate predicted probabilities if a probabilistic model is introduced; otherwise continue describing the output as a heuristic score.
+- Add preprocessing and model-response tests so evaluation and inference use consistent inputs.
+
 ## Architecture
 
 ```text
@@ -55,7 +70,7 @@ Python AI service
 |---|---|
 | Frontend | HTML5, CSS3, JavaScript |
 | Backend API | Java, Spring Boot, Maven |
-| AI service | Python, Flask / model-serving code |
+| AI service | Python, Flask, Pillow, optional PyTorch |
 | Database | MySQL |
 | Static hosting | GitHub Pages |
 | Automation | GitHub Actions |
@@ -66,8 +81,8 @@ Python AI service
 ```text
 Counterfeit-Detection-System/
 ├── frontend/              # Static pages, styles, and browser JavaScript
-├── java-backend/           # Spring Boot API
-├── ai-service/             # Python AI service
+├── java-backend/           # Spring Boot REST API
+├── ai-service/             # Flask API and image-analysis prototype
 ├── database/               # Database scripts
 ├── .github/workflows/      # CI, security, and Pages workflows
 ├── .env.example            # Configuration template
@@ -145,6 +160,30 @@ These checks validate the current automated backend and Python test suites, Pyth
 - Verify image uploads, CORS, API routing, persistent uploaded-image storage, and backend availability before calling the application fully live.
 - Model metrics and real-world counterfeit-detection accuracy should only be reported when supported by a repeatable evaluation on a documented dataset.
 - Do not upload sensitive product/customer data to a public demo.
+
+## Testing
+
+Run the checks from the repository root.
+
+**Java backend (Java 17):**
+
+```bash
+cd java-backend
+mvn -B verify
+```
+
+**Python AI service (Python 3.11):**
+
+```bash
+cd ai-service
+python -m pip install -r requirements.txt
+pytest -q
+python -m py_compile app.py predict.py train_model.py
+```
+
+The dedicated AI Service workflow also runs the tests under `tests/` and audits the pinned dependencies with `pip-audit -r requirements.txt`. Install `pip-audit` with `python -m pip install pip-audit` before running that audit locally.
+
+These commands validate builds, tests, syntax, and dependency advisories; they do not establish counterfeit-classification accuracy or product authenticity.
 
 ## Security
 
