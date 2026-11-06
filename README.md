@@ -82,13 +82,15 @@ Counterfeit-Detection-System/
 ### Option A — Docker Compose
 
 1. Install Docker Desktop.
-2. Copy the example environment file and replace all placeholders with local values:
+2. Copy the example environment file:
 
    ```powershell
    Copy-Item .env.example .env
    ```
 
-3. Start the services:
+3. Edit `.env` and set unique local values for `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD`. The example intentionally leaves both blank, and Docker Compose will refuse to start until you configure them. Use a dedicated non-root `MYSQL_USER` for the application.
+
+4. Start the services:
 
    ```bash
    docker compose up --build
@@ -98,7 +100,7 @@ Review `docker-compose.yml` and `.env.example` for the exact ports and required 
 
 ### Option B — Run components separately
 
-1. Start MySQL and apply the SQL scripts under `database/`.
+1. Start MySQL with a dedicated application account and explicit `DB_USERNAME` / `DB_PASSWORD` values; do not use the root account for the application. Apply the SQL scripts under `database/`.
 2. Start the Python service using its requirements file and documented entry point.
 3. Start the Java backend from `java-backend/` with `mvn spring-boot:run`.
 4. Serve the `frontend/` directory with VS Code Live Server or another static server.
