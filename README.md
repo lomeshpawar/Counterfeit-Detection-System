@@ -1,6 +1,6 @@
 # CounterCheck — Counterfeit Product Detection System
 
-> A full-stack academic research project exploring image-based product authenticity analysis.
+> A full-stack academic research project exploring experimental image-based product analysis. It is not a validated counterfeit classifier.
 
 CounterCheck combines a static HTML/CSS/JavaScript interface, a Spring Boot REST API, a Python AI service, and MySQL persistence. The repository separates those components so they can be developed and tested independently.
 
@@ -14,7 +14,7 @@ GitHub Pages hosts only the static frontend. Interactive features that require a
 
 ## Key capabilities
 
-- User registration and login
+- User registration and login interface
 - Product image selection, preview, and submission for analysis
 - Prediction result and history views
 - Administrative views and prediction statistics
@@ -23,7 +23,18 @@ GitHub Pages hosts only the static frontend. Interactive features that require a
 - MySQL persistence
 - GitHub Actions checks and GitHub Pages frontend deployment
 
-These capabilities depend on the relevant services being configured and running; the frontend URL alone does not provide a hosted inference backend.
+These are prototype capabilities and depend on the relevant services being configured and running; the frontend URL alone does not provide a hosted inference backend.
+
+## Known limitations
+
+The current `main` branch is an experimental prototype and has important security and model-correctness limitations:
+
+- **Authentication/authorization:** Spring Security currently permits all requests. The registration/login and administrative screens must not be interpreted as proof of authenticated sessions or server-enforced role-based access. Client-supplied identity or administrator headers are not trusted credentials. See [issue #15](https://github.com/lomeshpawar/Counterfeit-Detection-System/issues/15).
+- **AI-service failure handling:** The current backend contains a fallback that can save a synthetic Genuine/Counterfeit label when the AI service call fails. Such a record is not a real model prediction. This is being corrected in [PR #20](https://github.com/lomeshpawar/Counterfeit-Detection-System/pull/20); do not rely on fallback results.
+- **Model alignment:** The training script saves a custom MobileNetV2 checkpoint, but the current inference path does not load that checkpoint. It uses generic ImageNet outputs with image-quality heuristics. The resulting score is not a validated or calibrated counterfeit probability. See [issue #31](https://github.com/lomeshpawar/Counterfeit-Detection-System/issues/31).
+- **Deployment:** Full functionality requires a separately deployed/configured Java API, Python service, and database. GitHub Pages alone is only a static UI preview.
+
+Do not use this prototype to make real-world product-authenticity, purchasing, safety, or enforcement decisions.
 
 ## Architecture
 
@@ -98,6 +109,36 @@ The frontend's API base URL is currently hard-coded to `http://localhost:8081/ap
 
 The workflow `.github/workflows/pages.yml` publishes `frontend/` as a static site. After changes are pushed to `main`, inspect the repository's **Actions** tab and confirm the latest **Deploy Frontend to GitHub Pages** run succeeds.
 
+## Automated tests and validation
+
+Run the checks from the repository root. They match the commands used by the current GitHub Actions workflows.
+
+**Java backend:**
+
+```bash
+cd java-backend
+mvn -B verify
+```
+
+**Python AI service:**
+
+```bash
+cd ai-service
+python -m pip install -r requirements.txt
+python -m pytest -q
+python -m py_compile app.py predict.py train_model.py
+```
+
+The dedicated AI Service CI workflow also audits the pinned Python requirements and runs the tests under `ai-service/tests/`:
+
+```bash
+python -m pip install pip-audit
+pip-audit -r requirements.txt
+python -m pytest -q tests
+```
+
+These checks validate the current automated backend and Python test suites, Python source compilation, and the dependency audit. They do **not** provide browser end-to-end coverage or establish counterfeit-detection accuracy. Review the latest workflow runs in the [Actions tab](https://github.com/lomeshpawar/Counterfeit-Detection-System/actions) for the result on the commit you intend to use.
+
 ## Validation and limitations
 
 - CI runs automated repository checks; review the Actions tab for the latest result rather than assuming every workflow is green.
@@ -119,4 +160,3 @@ Academic full-stack project under development. The static frontend has a GitHub 
 ## Author
 
 **Lomesh Pawar** · [GitHub](https://github.com/lomeshpawar)
-
