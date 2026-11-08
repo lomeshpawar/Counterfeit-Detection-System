@@ -1,7 +1,6 @@
 """
 CounterCheck AI Microservice - Flask REST API.
 """
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from predict import predict_image
@@ -21,7 +20,7 @@ def health_check():
     return jsonify({
         "status": "UP",
         "service": "CounterCheck AI Service",
-        "model": "MobileNetV2 Transfer Learning"
+        "model": "Image-feature heuristic (unvalidated)"
     }), 200
 
 
