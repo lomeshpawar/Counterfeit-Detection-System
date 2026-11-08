@@ -19,7 +19,6 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/predictions")
-@CrossOrigin(origins = "*")
 public class PredictionController {
 
     private final PredictionService predictionService;
