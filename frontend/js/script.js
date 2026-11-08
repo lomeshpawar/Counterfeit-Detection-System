@@ -1,9 +1,40 @@
 // ============================================================
 // CounterCheck Frontend JavaScript
-// Connects HTML pages to Spring Boot REST API (http://localhost:8081)
+// Uses a configurable backend URL; static previews stay backend-free.
 // ============================================================
 
-const API_BASE_URL = "http://localhost:8081/api";
+const isLocalDevelopment = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+const configuredApiBaseUrl = String(window.COUNTERCHECK_CONFIG?.apiBaseUrl || "").trim().replace(/\/+$/, "");
+const API_BASE_URL = configuredApiBaseUrl || (isLocalDevelopment ? "http://localhost:8081/api" : "");
+const API_ORIGIN = (() => {
+    try {
+        return API_BASE_URL ? new URL(API_BASE_URL).origin : "";
+    } catch {
+        return "";
+    }
+})();
+const API_NOT_CONFIGURED_MESSAGE = "The backend API is not configured for this hosted preview. Set apiBaseUrl in js/config.js to the public HTTPS API URL.";
+
+function apiFetch(path, options) {
+    if (!API_BASE_URL) {
+        const error = new Error(API_NOT_CONFIGURED_MESSAGE);
+        error.code = "API_NOT_CONFIGURED";
+        throw error;
+    }
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return fetch(`${API_BASE_URL}${normalizedPath}`, options);
+}
+
+function getApiErrorMessage(error, fallback) {
+    return error && error.code === "API_NOT_CONFIGURED" ? API_NOT_CONFIGURED_MESSAGE : fallback;
+}
+
+function resolveApiImageUrl(imagePath, placeholder) {
+    if (!imagePath) return placeholder;
+    if (/^https?:\/\//i.test(imagePath)) return imagePath;
+    if (!API_ORIGIN) return placeholder;
+    return `${API_ORIGIN}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
+}
 
 
 // ===============================
@@ -39,7 +70,7 @@ if (registerForm) {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            const response = await apiFetch("/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, password })
@@ -55,7 +86,7 @@ if (registerForm) {
             }
         } catch (error) {
             console.error("Register Error:", error);
-            alert("Could not connect to Spring Boot backend. Please make sure server is running on http://localhost:8081");
+            alert(getApiErrorMessage(error, "Could not connect to Spring Boot backend. Check the API URL and service availability."));
         }
     });
 }
@@ -75,7 +106,7 @@ if (loginForm) {
         const password = document.getElementById("password").value;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            const response = await apiFetch("/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
@@ -92,48 +123,13 @@ if (loginForm) {
             }
         } catch (error) {
             console.error("Login Error:", error);
-            alert("Could not connect to Spring Boot backend.");
+            alert(getApiErrorMessage(error, "Could not connect to Spring Boot backend."));
         }
     });
 }
 
 
-// ===============================
-// ADMIN LOGIN FORM
-// ===============================
-
-const adminLoginForm = document.getElementById("adminLoginForm");
-
-if (adminLoginForm) {
-    adminLoginForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-
-        const email = document.getElementById("adminEmail").value.trim();
-        const password = document.getElementById("adminPassword").value;
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/auth/admin/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                localStorage.setItem("counterCheckAdmin", "true");
-                localStorage.setItem("counterCheckCurrentUser", JSON.stringify(data));
-                alert("Admin login successful!");
-                window.location.href = "admin-dashboard.html";
-            } else {
-                alert(data.error || data.message || "Invalid admin credentials.");
-            }
-        } catch (error) {
-            console.error("Admin Login Error:", error);
-            alert("Could not connect to Spring Boot backend.");
-        }
-    });
-}
+// Admin login is handled once below, with button state and role validation.
 
 
 // ===============================
@@ -330,7 +326,7 @@ function setupAnalysisForm() {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/predictions/analyze`, {
+            const response = await apiFetch("/predictions/analyze", {
                 method: "POST",
                 body: formData // Do not manually set Content-Type header for FormData!
             });
@@ -339,9 +335,7 @@ function setupAnalysisForm() {
 
             if (response.ok) {
                 // Construct complete static image URL
-                const imageUrl = data.imagePath.startsWith("http") 
-                    ? data.imagePath 
-                    : `http://localhost:8081${data.imagePath.startsWith('/') ? '' : '/'}${data.imagePath}`;
+                const imageUrl = resolveApiImageUrl(data.imagePath, "https://via.placeholder.com/500x400?text=Product");
 
                 const previewImgElem = document.getElementById("previewImage");
                 const resultRecord = {
@@ -371,7 +365,7 @@ function setupAnalysisForm() {
             }
         } catch (error) {
             console.error("Analysis Request Error:", error);
-            alert("Could not connect to Spring Boot AI backend server. Please make sure the backend is active on http://localhost:8081");
+            alert(getApiErrorMessage(error, "Could not connect to the AI backend. Check the API URL and service availability."));
         } finally {
             if (loading) loading.style.display = "none";
             if (analyzeButton) {
@@ -642,9 +636,7 @@ async function displayHistory() {
     }
 
     try {
-        const url = `${API_BASE_URL}/predictions/history/${userId}`;
-            
-        const response = await fetch(url, {
+        const response = await apiFetch(`/predictions/history/${userId}`, {
             headers: {
                 "X-User-Id": currentUser.id || "",
                 "X-User-Role": currentUser.role || "",
@@ -674,10 +666,7 @@ async function displayHistory() {
             const isGenuine = record.prediction && record.prediction.toLowerCase() === "genuine";
             const badgeClass = isGenuine ? "badge-genuine" : "badge-counterfeit";
             const badgeIcon = isGenuine ? "fa-circle-check" : "fa-triangle-exclamation";
-            const imageUrl = !record.imagePath ? 'https://via.placeholder.com/70?text=Product' :
-                record.imagePath.startsWith("http") 
-                ? record.imagePath 
-                : `http://localhost:8081${record.imagePath.startsWith('/') ? '' : '/'}${record.imagePath}`;
+            const imageUrl = resolveApiImageUrl(record.imagePath, "https://via.placeholder.com/70?text=Product");
             const formattedDate = new Date(record.predictedAt).toLocaleString();
             const confVal = parseFloat(record.confidence || 0).toFixed(2);
 
@@ -712,6 +701,10 @@ async function displayHistory() {
         });
     } catch (error) {
         console.error("Fetch History Error:", error);
+        if (error && error.code === "API_NOT_CONFIGURED" && noHistoryMessage) {
+            noHistoryMessage.textContent = API_NOT_CONFIGURED_MESSAGE;
+            noHistoryMessage.style.display = "block";
+        }
     }
 }
 
@@ -756,7 +749,7 @@ if (adminLoginForm) {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/admin/login`, {
+            const response = await apiFetch("/auth/admin/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
@@ -777,7 +770,7 @@ if (adminLoginForm) {
             }
         } catch (error) {
             console.error("Admin Login Error:", error);
-            alert("Error connecting to Spring Boot backend server.");
+            alert(getApiErrorMessage(error, "Error connecting to Spring Boot backend server."));
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = origText;
@@ -831,7 +824,7 @@ async function deletePrediction(predictionId, buttonElement) {
     if (!confirmDelete) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/predictions/${predictionId}`, {
+        const response = await apiFetch(`/predictions/${predictionId}`, {
             method: "DELETE",
             headers: {
                 "X-Admin-Role": currentUser.role || "ADMIN"
@@ -853,7 +846,7 @@ async function deletePrediction(predictionId, buttonElement) {
         }
     } catch (error) {
         console.error("Delete Error:", error);
-        alert("Error connecting to backend server.");
+        alert(getApiErrorMessage(error, "Error connecting to backend server."));
     }
 }
 
@@ -882,7 +875,7 @@ async function initializeAdminDashboard() {
         };
 
         // Fetch dashboard statistics from backend
-        const statsResp = await fetch(`${API_BASE_URL}/predictions/stats`, { headers: authHeaders });
+        const statsResp = await apiFetch("/predictions/stats", { headers: authHeaders });
         if (statsResp.ok) {
             const stats = await statsResp.json();
             document.getElementById("totalUsers").innerText = stats.totalUsers || 0;
@@ -899,7 +892,7 @@ async function initializeAdminDashboard() {
         const tableBody = document.getElementById("adminPredictionTableBody");
         if (!tableBody) return;
 
-        const allResp = await fetch(`${API_BASE_URL}/predictions/all`, { headers: authHeaders });
+        const allResp = await apiFetch("/predictions/all", { headers: authHeaders });
         if (allResp.ok) {
             const allData = await allResp.json();
             tableBody.innerHTML = "";
@@ -922,10 +915,7 @@ async function initializeAdminDashboard() {
                 const isGenuine = record.prediction && record.prediction.toLowerCase() === "genuine";
                 const badgeClass = isGenuine ? "badge-genuine" : "badge-counterfeit";
                 const badgeIcon = isGenuine ? "fa-circle-check" : "fa-triangle-exclamation";
-                const imageUrl = !record.imagePath ? 'https://via.placeholder.com/60?text=Product' :
-                    record.imagePath.startsWith("http") 
-                    ? record.imagePath 
-                    : `http://localhost:8081${record.imagePath.startsWith('/') ? '' : '/'}${record.imagePath}`;
+                const imageUrl = resolveApiImageUrl(record.imagePath, "https://via.placeholder.com/60?text=Product");
                 const formattedDate = new Date(record.predictedAt).toLocaleString();
                 const confVal = parseFloat(record.confidence || 0).toFixed(2);
 
@@ -973,6 +963,9 @@ async function initializeAdminDashboard() {
         }
     } catch (error) {
         console.error("Admin Dashboard Error:", error);
+        if (error && error.code === "API_NOT_CONFIGURED") {
+            alert(API_NOT_CONFIGURED_MESSAGE);
+        }
     }
 }
 
