@@ -38,6 +38,8 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
       SHOW_SQL: "false"
       JPA_DDL_AUTO: update
+      AI_SERVICE_CONNECT_TIMEOUT: ${AI_SERVICE_CONNECT_TIMEOUT:-3s}
+      AI_SERVICE_READ_TIMEOUT: ${AI_SERVICE_READ_TIMEOUT:-60s}
       UPLOAD_DIR: /data/uploads/
     ports:
       - "8081:8081"
