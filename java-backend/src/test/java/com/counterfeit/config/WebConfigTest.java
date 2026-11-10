@@ -54,6 +54,6 @@ class WebConfigTest {
         assertThrows(IllegalArgumentException.class,
                 () -> config.restTemplate(Duration.ZERO, Duration.ofSeconds(1)));
         assertThrows(IllegalArgumentException.class,
-                () -> config.restTemplate(Duration.ofSeconds(1), Duration.ofNegativeMillis(1)));
+                () -> config.restTemplate(Duration.ofSeconds(1), Duration.ofMillis(-1)));
     }
 }
