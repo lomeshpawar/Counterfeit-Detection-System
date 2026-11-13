@@ -30,7 +30,7 @@ These are prototype capabilities and depend on the relevant services being confi
 The current `main` branch is an experimental prototype and has important security and model-correctness limitations:
 
 - **Authentication/authorization:** Spring Security currently permits all requests. The registration/login and administrative screens do not establish server-enforced identity or roles. Client-supplied identity/administrator headers are not trusted credentials, and the analysis endpoint still accepts a caller-supplied `userId` that can attribute a prediction to another account. Do not use real user data or expose these endpoints publicly until [issue #15](https://github.com/lomeshpawar/Counterfeit-Detection-System/issues/15) is resolved with a server-verified principal and ownership checks.
-- **Default administrator seed credential:** `database/counterfeit_db.sql` currently inserts a preconfigured administrator account and discloses its default password in a comment in this public repository. Treat that credential as publicly compromised. Do not initialize a reachable deployment from this seed until [issue #43](https://github.com/lomeshpawar/Counterfeit-Detection-System/issues/43) is resolved. If an environment has already been initialized from this script, rotate its administrator credential immediately and review relevant access logs. The seed should be replaced with a controlled one-time bootstrap that obtains its secret outside the repository.
+- **Default administrator bootstrap:** The SQL seed no longer creates a reusable administrator account. For a fresh database, an operator can create the first administrator through the optional environment-based bootstrap documented below. Disable the bootstrap flag and remove the password variable after the first administrator is created. If a database was initialized from an older revision of the SQL seed, treat its default credential as compromised, rotate it immediately, and review relevant access logs. This bootstrap does not add request authentication or authorization; see [issue #15](https://github.com/lomeshpawar/Counterfeit-Detection-System/issues/15). Track the seed remediation in [issue #43](https://github.com/lomeshpawar/Counterfeit-Detection-System/issues/43).
 - **AI-service failure handling:** The backend now fails closed when the AI service is unavailable or returns an invalid response. It returns a retryable service-unavailable response and does not persist a synthetic Genuine/Counterfeit result. The AI service's successful output is still experimental and is not a validated counterfeit classification.
 - **Model alignment:** The training script saves a custom MobileNetV2 checkpoint, but the current inference path does not load that checkpoint. It uses generic ImageNet outputs with image-quality heuristics. The resulting score is not a validated or calibrated counterfeit probability. See [issue #31](https://github.com/lomeshpawar/Counterfeit-Detection-System/issues/31).
 - **Uploaded-image privacy:** The API validates image content and dimensions and stores files under generated names, but `WebConfig` still exposes `/uploads/**` as a public static-resource path and prediction responses include those image paths. Because prediction history is not authenticated, an image URL can be disclosed to an unauthenticated caller. Do not upload private/customer images until file access and ownership are protected. See [issue #35](https://github.com/lomeshpawar/Counterfeit-Detection-System/issues/35) and [follow-up issue #41](https://github.com/lomeshpawar/Counterfeit-Detection-System/issues/41).
@@ -108,6 +108,21 @@ Review `docker-compose.yml` and `.env.example` for the exact ports and required 
 4. Serve the `frontend/` directory with VS Code Live Server or another static server.
 
 The frontend's API base URL is currently hard-coded to `http://localhost:8081/api` in `frontend/js/script.js`. For a public deployment, change it to the deployed API's HTTPS base URL and confirm backend CORS and upload-storage configuration. Never put database credentials, passwords, tokens, or private keys in frontend code.
+
+### First administrator bootstrap
+
+The database script intentionally does not insert a default administrator. On a fresh database, configure the following variables for the first backend startup:
+
+- `ADMIN_BOOTSTRAP_ENABLED=true`
+- `ADMIN_BOOTSTRAP_NAME`
+- `ADMIN_BOOTSTRAP_EMAIL`
+- `ADMIN_BOOTSTRAP_PASSWORD` (at least 16 characters; use a unique randomly generated value)
+
+With Docker Compose, place these values in your local, ignored `.env` file before running `docker compose up --build`. The backend creates an `ADMIN` account only when no administrator exists. It stores a BCrypt hash, never the supplied password.
+
+After confirming that the first administrator was created, set `ADMIN_BOOTSTRAP_ENABLED=false` and remove `ADMIN_BOOTSTRAP_PASSWORD` from the runtime environment. If an existing database was initialized using an older SQL seed, rotate that account's password separately; the bootstrap does not change existing accounts.
+
+For separate local execution, export the same variables in the terminal used to start the Java backend. Do not put the bootstrap password in frontend code, source control, screenshots, or logs.
 
 ## GitHub Pages deployment
 
