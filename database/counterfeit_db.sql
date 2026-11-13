@@ -108,25 +108,19 @@ CREATE INDEX idx_prediction_date
 
 
 -- ============================================================
--- STEP 6: Insert a Default Admin User
+-- STEP 6: Initial administrator bootstrap
 -- ============================================================
--- This creates a default admin account so you can log in to
--- the admin dashboard immediately after setup.
+-- Do not insert a reusable administrator credential into this
+-- public SQL script. The backend can create the first ADMIN
+-- account when ADMIN_BOOTSTRAP_ENABLED=true and the required
+-- ADMIN_BOOTSTRAP_* variables are supplied through a trusted
+-- runtime environment. Use a unique password of at least 16
+-- characters. Disable bootstrap and remove the password variable
+-- after the first administrator has been created.
 --
--- NOTE: The password below is 'admin123' hashed using BCrypt.
--- Spring Boot Security uses BCrypt to hash passwords.
--- You can change the password later from the application.
-
-INSERT INTO users (name, email, password, role)
-VALUES (
-    'Admin',
-    'admin@countercheck.com',
-    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
-    'ADMIN'
-);
+-- See README.md and issue #43 for the setup and rotation guidance.
 
 
--- ============================================================
 -- STEP 7: Verify Everything Works — Test Queries
 -- ============================================================
 
