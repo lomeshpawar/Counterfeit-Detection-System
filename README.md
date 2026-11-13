@@ -118,7 +118,7 @@ The database script intentionally does not insert a default administrator. On a 
 - `ADMIN_BOOTSTRAP_EMAIL`
 - `ADMIN_BOOTSTRAP_PASSWORD` (at least 16 characters; use a unique randomly generated value)
 
-With Docker Compose, place these values in your local, ignored `.env` file before running `docker compose up --build`. The backend creates an `ADMIN` account only when no administrator exists. It stores a BCrypt hash, never the supplied password.
+With Docker Compose, place these values in your local, ignored `.env` file before running `docker compose up --build`. The backend creates an `ADMIN` account only when no administrator exists. It stores a BCrypt hash, never the supplied password. **Run exactly one backend instance while bootstrap is enabled.** The current check-then-create operation is not serialized across concurrent application instances; multiple instances starting together could each observe that no administrator exists. If you need multi-instance bootstrap, add database-backed coordination before enabling it.
 
 After confirming that the first administrator was created, set `ADMIN_BOOTSTRAP_ENABLED=false` and remove `ADMIN_BOOTSTRAP_PASSWORD` from the runtime environment. If an existing database was initialized using an older SQL seed, rotate that account's password separately; the bootstrap does not change existing accounts.
 
