@@ -49,10 +49,11 @@ class AdminBootstrapRunnerTest {
     }
 
     @Test
-    void createsFirstAdministratorWithEncodedPassword() {
+    void createsFirstAdministratorWithEncodedPasswordAndNormalizedEmail() {
         when(userRepository.countByRole("ADMIN")).thenReturn(0L);
+        when(userRepository.existsByEmail(EMAIL)).thenReturn(false);
         when(passwordEncoder.encode(PASSWORD)).thenReturn("encoded-password");
-        AdminBootstrapRunner runner = runner(true, NAME, EMAIL, PASSWORD);
+        AdminBootstrapRunner runner = runner(true, NAME, " Admin@Example.com ", PASSWORD);
 
         runner.run(null);
 
@@ -64,7 +65,25 @@ class AdminBootstrapRunnerTest {
         assertEquals(EMAIL, saved.getEmail());
         assertEquals("ADMIN", saved.getRole());
         assertEquals("encoded-password", saved.getPassword());
+        verify(userRepository).existsByEmail(EMAIL);
         verify(passwordEncoder).encode(PASSWORD);
+    }
+
+    @Test
+    void rejectsBootstrapEmailAlreadyUsedByAnExistingUser() {
+        when(userRepository.countByRole("ADMIN")).thenReturn(0L);
+        when(userRepository.existsByEmail(EMAIL)).thenReturn(true);
+        AdminBootstrapRunner runner = runner(true, NAME, EMAIL, PASSWORD);
+
+        IllegalStateException exception =
+                assertThrows(IllegalStateException.class, () -> runner.run(null));
+
+        assertEquals(
+                "ADMIN_BOOTSTRAP_EMAIL already belongs to an existing account. Choose an unused email address.",
+                exception.getMessage());
+        verify(userRepository).existsByEmail(EMAIL);
+        verify(userRepository, never()).save(any(User.class));
+        verifyNoInteractions(passwordEncoder);
     }
 
     @Test
