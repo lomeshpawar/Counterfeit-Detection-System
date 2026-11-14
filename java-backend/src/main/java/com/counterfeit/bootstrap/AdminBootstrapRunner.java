@@ -9,6 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.Locale;
+
 /**
  * Creates the first administrator only when an operator explicitly enables
  * bootstrap and supplies credentials through the runtime environment.
@@ -62,9 +64,15 @@ public class AdminBootstrapRunner implements ApplicationRunner {
                     "ADMIN_BOOTSTRAP_PASSWORD must contain at least 16 characters.");
         }
 
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+        if (userRepository.existsByEmail(normalizedEmail)) {
+            throw new IllegalStateException(
+                    "ADMIN_BOOTSTRAP_EMAIL already belongs to an existing account. Choose an unused email address.");
+        }
+
         User admin = new User();
         admin.setName(name.trim());
-        admin.setEmail(email.trim());
+        admin.setEmail(normalizedEmail);
         admin.setPassword(passwordEncoder.encode(password));
         admin.setRole("ADMIN");
 
