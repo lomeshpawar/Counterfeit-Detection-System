@@ -72,7 +72,7 @@ public class SecurityConfig {
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Allow all origins (e.g., http://localhost:3000, http://localhost:5173, etc.)
+        // Allow only the configured origin patterns (comma-separated in app.cors.allowed-origins).
         configuration.setAllowedOriginPatterns(Arrays.stream(allowedOrigins.split(",")).map(String::trim).filter(origin -> !origin.isEmpty()).toList());
         
         // Allow all standard HTTP methods
