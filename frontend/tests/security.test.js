@@ -30,10 +30,17 @@ vm.runInContext(fs.readFileSync(scriptPath, "utf8"), sandbox, { filename: script
 test("escapeHtml encodes text and attribute metacharacters", () => {
     const escaped = vm.runInContext('escapeHtml("<script>alert(1)</script> & \"quoted\" \'single\'")', sandbox);
     assert.equal(escaped, "&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;quoted&quot; &#39;single&#39;");
+    assert.equal(
+        vm.runInContext('escapeHtml("/uploads/" + String.fromCharCode(34) + " onerror=alert(1)")', sandbox),
+        "/uploads/&quot; onerror=alert(1)"
+    );
 });
 
-test("safeImageUrl accepts backend-relative paths and same-origin URLs", () => {
-    const fallback = "https://via.placeholder.com/70?text=Product";
+test("safeImageUrl accepts backend paths and raster previews only", () => {
+    assert.equal(
+        vm.runInContext('safeImageUrl("/uploads/item.png", "fallback")', sandbox),
+        "http://localhost:8081/uploads/item.png"
+    );
     assert.equal(
         vm.runInContext('safeImageUrl("http://localhost:8081/uploads/item.png", "fallback")', sandbox),
         "http://localhost:8081/uploads/item.png"
@@ -52,10 +59,6 @@ test("safeImageUrl accepts backend-relative paths and same-origin URLs", () => {
     );
     assert.equal(
         vm.runInContext('safeImageUrl("https://attacker.example/image.png", "fallback")', sandbox),
-        "fallback"
-    );
-    assert.equal(
-        vm.runInContext('safeImageUrl("/uploads/\\" onerror=alert(1)", "fallback")', sandbox),
         "fallback"
     );
 });
