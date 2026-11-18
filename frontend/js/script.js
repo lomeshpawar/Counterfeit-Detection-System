@@ -5,6 +5,79 @@
 
 const API_BASE_URL = "http://localhost:8081/api";
 
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (character) {
+        return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[character];
+    });
+}
+
+function safeImageUrl(value, fallback) {
+    if (typeof value !== "string" || value.length > 15000000) return fallback;
+
+    const candidate = value.trim();
+    if (!candidate) return fallback;
+
+    // Guest previews may use FileReader-generated raster image data URLs.
+    if (/^data:image\/(?:png|jpeg|webp|gif);base64,[a-z0-9+/]*={0,2}$/i.test(candidate)) {
+        return candidate;
+    }
+
+    try {
+        const backendOrigin = new URL(API_BASE_URL).origin;
+        const url = new URL(candidate, backendOrigin);
+        if ((url.protocol === "https:" || url.protocol === "http:")
+            && url.origin === backendOrigin
+            && !url.username
+            && !url.password) {
+            return url.href;
+        }
+    } catch (error) {
+        // Invalid or unexpected image URLs fall back to a local placeholder.
+    }
+
+    return fallback;
+}
+
+function isSupportedImageFile(file) {
+    if (!file || typeof file.name !== "string") return false;
+
+    const extension = file.name.toLowerCase().match(/\.[^.]+$/)?.[0];
+    const supportedMimeTypes = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp"
+    };
+    const expectedMimeType = supportedMimeTypes[extension];
+    if (!expectedMimeType) return false;
+
+    const actualMimeType = typeof file.type === "string" ? file.type.toLowerCase() : "";
+    return !actualMimeType || actualMimeType === expectedMimeType;
+}
+
+function normalizePrediction(value) {
+    const prediction = typeof value === "string" ? value.trim().toLowerCase() : "";
+    if (prediction === "genuine") return "Genuine";
+    if (prediction === "counterfeit") return "Counterfeit";
+    return "Unknown";
+}
+
+function normalizeConfidence(value) {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? Math.max(0, Math.min(numeric, 100)) : 0;
+}
+
+function formatDate(value) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "Unknown date" : date.toLocaleString();
+}
+
 
 // ===============================
 // MOBILE NAVIGATION
@@ -178,13 +251,10 @@ function setupImageUploadHandlers() {
 function handleSelectedFile(file) {
     if (!file) return;
 
-    // Validate file type (JPG, JPEG, PNG, WEBP)
-    const validExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
-    const fileName = file.name.toLowerCase();
-    const isValidType = validExtensions.some(ext => fileName.endsWith(ext)) || (file.type && file.type.startsWith('image/'));
-
-    if (!isValidType) {
-        alert("Invalid file format. Please upload a valid image file (JPG, JPEG, PNG, or WEBP).");
+    // Accept only the raster formats supported by the preview policy.
+    // This is a client-side convenience check; the backend must validate file content.
+    if (!isSupportedImageFile(file)) {
+        alert("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image with a matching MIME type.");
         resetSelectedFile();
         return;
     }
@@ -210,12 +280,23 @@ function handleSelectedFile(file) {
     
     const reader = new FileReader();
     reader.onload = function (event) {
+        const previewUrl = safeImageUrl(event && event.target ? event.target.result : "", "");
+        if (!previewUrl) {
+            alert("The selected file could not be previewed as a supported raster image.");
+            resetSelectedFile();
+            return;
+        }
+
         if (previewImage) {
-            previewImage.src = event.target.result;
+            previewImage.src = previewUrl;
         }
         if (imagePreview) {
             imagePreview.style.display = "block";
         }
+    };
+    reader.onerror = function () {
+        alert("The selected image could not be read. Please choose another file.");
+        resetSelectedFile();
     };
     reader.readAsDataURL(file);
 
@@ -301,9 +382,7 @@ function setupAnalysisForm() {
 
             if (response.ok) {
                 // Construct complete static image URL
-                const imageUrl = data.imagePath.startsWith("http") 
-                    ? data.imagePath 
-                    : `http://localhost:8081${data.imagePath.startsWith('/') ? '' : '/'}${data.imagePath}`;
+                const imageUrl = safeImageUrl(data.imagePath, "https://via.placeholder.com/500x400?text=Product+Image");
 
                 const previewImgElem = document.getElementById("previewImage");
                 const resultRecord = {
@@ -312,7 +391,7 @@ function setupAnalysisForm() {
                     prediction: data.prediction,
                     confidence: data.confidence,
                     category: data.productCategory || category,
-                    model: data.modelUsed || "MobileNetV2 Transfer Learning",
+                    model: data.modelUsed || "Experimental image heuristic",
                     date: new Date(data.predictedAt || Date.now()).toLocaleString()
                 };
 
@@ -353,7 +432,9 @@ function renderInlineResult(result) {
         return;
     }
 
-    const isGenuine = result.prediction && result.prediction.toLowerCase() === "genuine";
+    const predictionLabel = normalizePrediction(result.prediction);
+    const isGenuine = predictionLabel === "Genuine";
+    const isCounterfeit = predictionLabel === "Counterfeit";
 
     // Verdict Banner & Icon
     const verdictBanner = document.getElementById("verdictBanner");
@@ -361,12 +442,12 @@ function renderInlineResult(result) {
     const verdictText = document.getElementById("verdictText");
 
     if (verdictBanner && verdictText) {
-        verdictBanner.className = `verdict-banner ${isGenuine ? 'verdict-genuine' : 'verdict-counterfeit'}`;
-        verdictText.innerText = isGenuine ? "Genuine Product Verified" : "Counterfeit Product Detected";
+        verdictBanner.className = `verdict-banner ${isGenuine ? 'verdict-genuine' : isCounterfeit ? 'verdict-counterfeit' : ''}`;
+        verdictText.innerText = isGenuine ? "Lower-risk image pattern" : isCounterfeit ? "Higher-risk image pattern" : "Unclassified image pattern";
     }
 
     if (verdictIcon) {
-        verdictIcon.className = `fa-solid ${isGenuine ? 'fa-shield-check' : 'fa-triangle-exclamation'}`;
+        verdictIcon.className = `fa-solid ${isGenuine ? 'fa-shield-check' : isCounterfeit ? 'fa-triangle-exclamation' : 'fa-circle-question'}`;
     }
 
     // Images
@@ -378,20 +459,20 @@ function renderInlineResult(result) {
         if (imgElem) {
             imgElem.onerror = function() {
                 this.onerror = null;
-                this.src = result.image || "https://via.placeholder.com/500x400?text=Product+Image";
+                this.src = safeImageUrl(result.image, "https://via.placeholder.com/500x400?text=Product+Image");
             };
             if (previewImage && previewImage.src && previewImage.src.length > 20) {
-                imgElem.src = previewImage.src;
+                imgElem.src = safeImageUrl(previewImage.src, "https://via.placeholder.com/500x400?text=Product+Image");
             } else if (result.previewUrl && result.previewUrl.length > 20) {
-                imgElem.src = result.previewUrl;
+                imgElem.src = safeImageUrl(result.previewUrl, "https://via.placeholder.com/500x400?text=Product+Image");
             } else {
-                imgElem.src = result.image;
+                imgElem.src = safeImageUrl(result.image, "https://via.placeholder.com/500x400?text=Product+Image");
             }
         }
     });
 
     // Confidence Score
-    const formattedConf = parseFloat(result.confidence || 0).toFixed(2) + "%";
+    const formattedConf = normalizeConfidence(result.confidence).toFixed(2) + "%";
     ["resultConfidence", "confidenceScore"].forEach(id => {
         const elem = document.getElementById(id);
         if (elem) elem.innerText = formattedConf;
@@ -405,7 +486,7 @@ function renderInlineResult(result) {
     });
 
     // Model Info
-    const formattedModel = result.model || "MobileNetV2 Transfer Learning";
+    const formattedModel = result.model || "Experimental image heuristic";
     ["resultModel", "modelInfo"].forEach(id => {
         const elem = document.getElementById(id);
         if (elem) elem.innerText = formattedModel;
@@ -421,11 +502,7 @@ function renderInlineResult(result) {
     // Details breakdown
     const detectionDetailsText = document.getElementById("detectionDetailsText");
     if (detectionDetailsText) {
-        if (isGenuine) {
-            detectionDetailsText.innerHTML = `<strong>Status: Authentic Packaging Verified</strong><br>The PyTorch MobileNetV2 vision engine analyzed microscopic print sharpness, texture histogram distribution, and brand logo geometry. The product characteristics match genuine manufacturer benchmarks.`;
-        } else {
-            detectionDetailsText.innerHTML = `<strong>Status: High Counterfeit Risk</strong><br>The PyTorch MobileNetV2 vision engine detected texture anomalies, print blurriness, or color spectrum variations inconsistent with authentic manufacturer standards.`;
-        }
+        detectionDetailsText.innerHTML = `<strong>Experimental heuristic result</strong><br>The prototype combines generic image-model output with image-quality heuristics. This is not a validated counterfeit classifier and does not verify product authenticity.`;
     }
 
     resultSection.style.display = "block";
@@ -466,7 +543,9 @@ function displayResult() {
     if (resultGrid) resultGrid.style.display = "grid";
     if (noResultState) noResultState.style.display = "none";
 
-    const isGenuine = result.prediction && result.prediction.toLowerCase() === "genuine";
+    const predictionLabel = normalizePrediction(result.prediction);
+    const isGenuine = predictionLabel === "Genuine";
+    const isCounterfeit = predictionLabel === "Counterfeit";
 
     // Update Images
     [resultImage, resultCardImage].forEach(imgElem => {
@@ -476,11 +555,11 @@ function displayResult() {
                 this.src = "https://via.placeholder.com/500x400?text=Product+Image";
             };
             if (result.previewUrl && result.previewUrl.length > 20) {
-                imgElem.src = result.previewUrl;
+                imgElem.src = safeImageUrl(result.previewUrl, "https://via.placeholder.com/500x400?text=Product+Image");
             } else if (result.dataUrl && result.dataUrl.length > 20) {
-                imgElem.src = result.dataUrl;
+                imgElem.src = safeImageUrl(result.dataUrl, "https://via.placeholder.com/500x400?text=Product+Image");
             } else {
-                imgElem.src = result.image;
+                imgElem.src = safeImageUrl(result.image, "https://via.placeholder.com/500x400?text=Product+Image");
             }
         }
     });
@@ -491,22 +570,22 @@ function displayResult() {
     const verdictText = document.getElementById("verdictText");
 
     if (verdictBanner && verdictText) {
-        verdictBanner.className = `verdict-banner ${isGenuine ? 'verdict-genuine' : 'verdict-counterfeit'}`;
-        verdictText.innerText = isGenuine ? "Genuine Product Verified" : "Counterfeit Product Detected";
+        verdictBanner.className = `verdict-banner ${isGenuine ? 'verdict-genuine' : isCounterfeit ? 'verdict-counterfeit' : ''}`;
+        verdictText.innerText = isGenuine ? "Lower-risk image pattern" : isCounterfeit ? "Higher-risk image pattern" : "Unclassified image pattern";
     }
 
     if (verdictIcon) {
-        verdictIcon.className = `fa-solid ${isGenuine ? 'fa-shield-check' : 'fa-triangle-exclamation'}`;
+        verdictIcon.className = `fa-solid ${isGenuine ? 'fa-shield-check' : isCounterfeit ? 'fa-triangle-exclamation' : 'fa-circle-question'}`;
     }
 
     const predictionStatus = document.getElementById("predictionStatus");
     if (predictionStatus) {
-        predictionStatus.innerText = isGenuine ? "Genuine" : "Counterfeit";
-        predictionStatus.className = `prediction-status ${isGenuine ? 'genuine' : 'counterfeit'}`;
+        predictionStatus.innerText = isGenuine ? "Lower-risk pattern" : isCounterfeit ? "Higher-risk pattern" : "Unclassified";
+        predictionStatus.className = `prediction-status ${isGenuine ? 'genuine' : isCounterfeit ? 'counterfeit' : ''}`;
     }
 
     // Confidence Score
-    const formattedConf = parseFloat(result.confidence || 0).toFixed(2) + "%";
+    const formattedConf = normalizeConfidence(result.confidence).toFixed(2) + "%";
     ["confidenceScore", "resultConfidence"].forEach(id => {
         const elem = document.getElementById(id);
         if (elem) elem.innerText = formattedConf;
@@ -520,7 +599,7 @@ function displayResult() {
     });
 
     // Model Info
-    const formattedModel = result.model || "MobileNetV2 Transfer Learning";
+    const formattedModel = result.model || "Experimental image heuristic";
     ["modelInfo", "resultModel"].forEach(id => {
         const elem = document.getElementById(id);
         if (elem) elem.innerText = formattedModel;
@@ -536,11 +615,7 @@ function displayResult() {
     // Breakdown Details
     const detectionDetailsText = document.getElementById("detectionDetailsText");
     if (detectionDetailsText) {
-        if (isGenuine) {
-            detectionDetailsText.innerHTML = `<strong>Status: Authentic Packaging Verified</strong><br>The PyTorch MobileNetV2 vision engine analyzed microscopic print sharpness, texture histogram distribution, and brand logo geometry. The product characteristics match genuine manufacturer benchmarks.`;
-        } else {
-            detectionDetailsText.innerHTML = `<strong>Status: High Counterfeit Risk</strong><br>The PyTorch MobileNetV2 vision engine detected texture anomalies, print blurriness, or color spectrum variations inconsistent with authentic manufacturer standards.`;
-        }
+        detectionDetailsText.innerHTML = `<strong>Experimental heuristic result</strong><br>The prototype combines generic image-model output with image-quality heuristics. This is not a validated counterfeit classifier and does not verify product authenticity.`;
     }
 }
 
@@ -564,36 +639,39 @@ async function displayHistory() {
 
         if (latestLocal) {
             if (noHistoryMessage) noHistoryMessage.style.display = "none";
-            const isGenuine = latestLocal.prediction && latestLocal.prediction.toLowerCase() === "genuine";
-            const badgeClass = isGenuine ? "badge-genuine" : "badge-counterfeit";
-            const badgeIcon = isGenuine ? "fa-circle-check" : "fa-triangle-exclamation";
-            const confVal = parseFloat(latestLocal.confidence || 0).toFixed(2);
+            const predictionLabel = normalizePrediction(latestLocal.prediction);
+            const isGenuine = predictionLabel === "Genuine";
+            const isCounterfeit = predictionLabel === "Counterfeit";
+            const badgeClass = isGenuine ? "badge-genuine" : isCounterfeit ? "badge-counterfeit" : "";
+            const badgeIcon = isGenuine ? "fa-circle-check" : isCounterfeit ? "fa-triangle-exclamation" : "fa-circle-question";
+            const fillClass = isGenuine ? "fill-genuine" : isCounterfeit ? "fill-counterfeit" : "";
+            const confVal = normalizeConfidence(latestLocal.confidence);
 
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td class="id-cell">#Guest</td>
                 <td>
                     <div class="table-img-container">
-                        <img src="${latestLocal.dataUrl || latestLocal.image}" alt="Product Snapshot" onerror="this.onerror=null;this.src='https://via.placeholder.com/70?text=Product';">
+                        <img src="${escapeHtml(safeImageUrl(latestLocal.dataUrl || latestLocal.image, "https://via.placeholder.com/70?text=Product"))}" alt="Product Snapshot" onerror="this.onerror=null;this.src='https://via.placeholder.com/70?text=Product';">
                     </div>
                 </td>
                 <td>
                     <span class="badge ${badgeClass}">
                         <i class="fa-solid ${badgeIcon}"></i>
-                        <span>${latestLocal.prediction}</span>
+                        <span>${escapeHtml(predictionLabel)}</span>
                     </span>
                 </td>
                 <td>
                     <div class="confidence-cell">
-                        <span class="confidence-num">${confVal}%</span>
+                        <span class="confidence-num">${confVal.toFixed(2)}%</span>
                         <div class="confidence-mini-bar">
-                            <div class="confidence-mini-fill ${isGenuine ? 'fill-genuine' : 'fill-counterfeit'}" style="width: ${Math.min(confVal, 100)}%;"></div>
+                            <div class="confidence-mini-fill ${fillClass}" style="width: ${confVal}%;"></div>
                         </div>
                     </div>
                 </td>
                 <td class="date-cell">
                     <i class="fa-regular fa-clock date-icon"></i>
-                    <span>${latestLocal.date}</span>
+                    <span>${escapeHtml(latestLocal.date)}</span>
                 </td>
             `;
             historyTableBody.appendChild(row);
@@ -633,40 +711,40 @@ async function displayHistory() {
         historyData.forEach(function (record) {
             const row = document.createElement("tr");
 
-            const isGenuine = record.prediction && record.prediction.toLowerCase() === "genuine";
-            const badgeClass = isGenuine ? "badge-genuine" : "badge-counterfeit";
-            const badgeIcon = isGenuine ? "fa-circle-check" : "fa-triangle-exclamation";
-            const imageUrl = !record.imagePath ? 'https://via.placeholder.com/70?text=Product' :
-                record.imagePath.startsWith("http") 
-                ? record.imagePath 
-                : `http://localhost:8081${record.imagePath.startsWith('/') ? '' : '/'}${record.imagePath}`;
-            const formattedDate = new Date(record.predictedAt).toLocaleString();
-            const confVal = parseFloat(record.confidence || 0).toFixed(2);
+            const predictionLabel = normalizePrediction(record.prediction);
+            const isGenuine = predictionLabel === "Genuine";
+            const isCounterfeit = predictionLabel === "Counterfeit";
+            const badgeClass = isGenuine ? "badge-genuine" : isCounterfeit ? "badge-counterfeit" : "";
+            const badgeIcon = isGenuine ? "fa-circle-check" : isCounterfeit ? "fa-triangle-exclamation" : "fa-circle-question";
+            const fillClass = isGenuine ? "fill-genuine" : isCounterfeit ? "fill-counterfeit" : "";
+            const imageUrl = safeImageUrl(record.imagePath, "https://via.placeholder.com/70?text=Product");
+            const formattedDate = formatDate(record.predictedAt);
+            const confVal = normalizeConfidence(record.confidence);
 
             row.innerHTML = `
-                <td class="id-cell">#${record.id}</td>
+                <td class="id-cell">#${escapeHtml(record.id)}</td>
                 <td>
                     <div class="table-img-container">
-                        <img src="${imageUrl}" alt="Product Snapshot" onerror="this.onerror=null;this.src='https://via.placeholder.com/70?text=Product';">
+                        <img src="${escapeHtml(imageUrl)}" alt="Product Snapshot" onerror="this.onerror=null;this.src='https://via.placeholder.com/70?text=Product';">
                     </div>
                 </td>
                 <td>
                     <span class="badge ${badgeClass}">
                         <i class="fa-solid ${badgeIcon}"></i>
-                        <span>${record.prediction}</span>
+                        <span>${escapeHtml(predictionLabel)}</span>
                     </span>
                 </td>
                 <td>
                     <div class="confidence-cell">
-                        <span class="confidence-num">${confVal}%</span>
+                        <span class="confidence-num">${confVal.toFixed(2)}%</span>
                         <div class="confidence-mini-bar">
-                            <div class="confidence-mini-fill ${isGenuine ? 'fill-genuine' : 'fill-counterfeit'}" style="width: ${Math.min(confVal, 100)}%;"></div>
+                            <div class="confidence-mini-fill ${fillClass}" style="width: ${confVal}%;"></div>
                         </div>
                     </div>
                 </td>
                 <td class="date-cell">
                     <i class="fa-regular fa-clock date-icon"></i>
-                    <span>${formattedDate}</span>
+                    <span>${escapeHtml(formattedDate)}</span>
                 </td>
             `;
 
@@ -881,52 +959,60 @@ async function initializeAdminDashboard() {
             allData.forEach(function (record) {
                 const row = document.createElement("tr");
 
-                const isGenuine = record.prediction && record.prediction.toLowerCase() === "genuine";
-                const badgeClass = isGenuine ? "badge-genuine" : "badge-counterfeit";
-                const badgeIcon = isGenuine ? "fa-circle-check" : "fa-triangle-exclamation";
-                const imageUrl = !record.imagePath ? 'https://via.placeholder.com/60?text=Product' :
-                    record.imagePath.startsWith("http") 
-                    ? record.imagePath 
-                    : `http://localhost:8081${record.imagePath.startsWith('/') ? '' : '/'}${record.imagePath}`;
-                const formattedDate = new Date(record.predictedAt).toLocaleString();
-                const confVal = parseFloat(record.confidence || 0).toFixed(2);
+                const predictionLabel = normalizePrediction(record.prediction);
+                const isGenuine = predictionLabel === "Genuine";
+                const isCounterfeit = predictionLabel === "Counterfeit";
+                const badgeClass = isGenuine ? "badge-genuine" : isCounterfeit ? "badge-counterfeit" : "";
+                const badgeIcon = isGenuine ? "fa-circle-check" : isCounterfeit ? "fa-triangle-exclamation" : "fa-circle-question";
+                const fillClass = isGenuine ? "fill-genuine" : isCounterfeit ? "fill-counterfeit" : "";
+                const imageUrl = safeImageUrl(record.imagePath, "https://via.placeholder.com/60?text=Product");
+                const formattedDate = formatDate(record.predictedAt);
+                const confVal = normalizeConfidence(record.confidence);
+                const predictionId = Number(record.id);
+                const canDelete = Number.isSafeInteger(predictionId) && predictionId > 0;
+                const deleteAction = canDelete
+                    ? `<button class="btn btn-danger btn-delete-row" onclick="deletePrediction(${predictionId}, this)">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>Delete</span>
+                        </button>`
+                    : `<button class="btn btn-danger btn-delete-row" disabled>
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>Delete unavailable</span>
+                        </button>`;
 
                 row.innerHTML = `
-                    <td class="id-cell">#${record.id}</td>
+                    <td class="id-cell">#${escapeHtml(record.id)}</td>
                     <td class="user-cell">
                         <div class="user-info-wrapper">
                             <div class="user-avatar-small"><i class="fa-solid fa-user"></i></div>
-                            <span>${record.userName || "Guest User"}</span>
+                            <span>${escapeHtml(record.userName || "Guest User")}</span>
                         </div>
                     </td>
                     <td>
                         <div class="table-img-container">
-                            <img src="${imageUrl}" alt="Product Snapshot" onerror="this.onerror=null;this.src='https://via.placeholder.com/60?text=Product';">
+                            <img src="${escapeHtml(imageUrl)}" alt="Product Snapshot" onerror="this.onerror=null;this.src='https://via.placeholder.com/60?text=Product';">
                         </div>
                     </td>
                     <td>
                         <span class="badge ${badgeClass}">
                             <i class="fa-solid ${badgeIcon}"></i>
-                            <span>${record.prediction}</span>
+                            <span>${escapeHtml(predictionLabel)}</span>
                         </span>
                     </td>
                     <td>
                         <div class="confidence-cell">
-                            <span class="confidence-num">${confVal}%</span>
+                            <span class="confidence-num">${confVal.toFixed(2)}%</span>
                             <div class="confidence-mini-bar">
-                                <div class="confidence-mini-fill ${isGenuine ? 'fill-genuine' : 'fill-counterfeit'}" style="width: ${Math.min(confVal, 100)}%;"></div>
+                                <div class="confidence-mini-fill ${fillClass}" style="width: ${confVal}%;"></div>
                             </div>
                         </div>
                     </td>
                     <td class="date-cell">
                         <i class="fa-regular fa-clock date-icon"></i>
-                        <span>${formattedDate}</span>
+                        <span>${escapeHtml(formattedDate)}</span>
                     </td>
                     <td>
-                        <button class="btn btn-danger btn-delete-row" onclick="deletePrediction(${record.id}, this)">
-                            <i class="fa-solid fa-trash-can"></i>
-                            <span>Delete</span>
-                        </button>
+                        ${deleteAction}
                     </td>
                 `;
 
@@ -982,7 +1068,7 @@ function updateNavigationAndSecurity() {
                 if (link.getAttribute("href") === "login.html") {
                     li.innerHTML = `
                         <a href="#" onclick="userLogout(); return false;" class="user-profile-badge" style="color: var(--accent-cyan); font-weight: 600;">
-                            <i class="fa-solid fa-user-check"></i> ${currentUser.name.split(' ')[0]} (Logout)
+                            <i class="fa-solid fa-user-check"></i> ${escapeHtml(String(currentUser.name).trim().split(/\s+/)[0])} (Logout)
                         </a>
                     `;
                 } else if (link.getAttribute("href") === "register.html") {
