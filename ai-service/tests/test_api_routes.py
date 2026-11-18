@@ -22,6 +22,7 @@ def test_health_returns_service_status(client):
 
     assert response.status_code == 200
     assert response.get_json()["status"] == "UP"
+    assert response.get_json()["model"] == "Image-feature heuristic (unvalidated)"
 
 
 def test_predict_rejects_missing_upload(client):

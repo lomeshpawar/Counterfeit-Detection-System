@@ -48,3 +48,16 @@ jobs:
         run: pytest -q
       - name: Compile Python sources
         run: python -m py_compile app.py predict.py train_model.py
+
+  frontend-ui-check:
+    name: Frontend JavaScript syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check browser JavaScript syntax
+        run: node --check frontend/js/script.js

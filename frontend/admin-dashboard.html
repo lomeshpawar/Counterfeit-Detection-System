@@ -88,7 +88,7 @@
                 </h1>
 
                 <p class="admin-subtitle">
-                    Real-time monitoring of registered user accounts, AI image predictions, and counterfeit detection statistics.
+                    Review user accounts and experimental image-analysis records. Heuristic labels are not verified authenticity decisions.
                 </p>
 
             </div>
@@ -126,21 +126,21 @@
                     </div>
 
                     <div class="stat-card-body">
-                        <h3>Total AI Predictions</h3>
+                        <h3>Total image analyses</h3>
                         <p id="totalPredictions">0</p>
                     </div>
 
                 </div>
 
 
-                <!-- Stat 3: Genuine Products -->
+                <!-- Stat 3: Lower-risk heuristic labels -->
                 <div class="stat-card stat-genuine">
 
                     <div class="stat-card-header">
                         <div class="stat-icon-wrapper icon-bg-green">
                             <i class="fa-solid fa-shield-check"></i>
                         </div>
-                        <span class="stat-badge badge-green">Genuine</span>
+                        <span class="stat-badge badge-green">Lower-risk</span>
                     </div>
 
                     <div class="stat-card-body">
@@ -151,14 +151,14 @@
                 </div>
 
 
-                <!-- Stat 4: Counterfeit Products -->
+                <!-- Stat 4: Higher-risk heuristic labels -->
                 <div class="stat-card stat-counterfeit">
 
                     <div class="stat-card-header">
                         <div class="stat-icon-wrapper icon-bg-red">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
-                        <span class="stat-badge badge-red">Counterfeit</span>
+                        <span class="stat-badge badge-red">Higher-risk</span>
                     </div>
 
                     <div class="stat-card-body">
@@ -176,7 +176,7 @@
 
                 <div class="management-header">
                     <h2>
-                        <i class="fa-solid fa-database text-secondary"></i> All Product Predictions
+                        <i class="fa-solid fa-database text-secondary"></i> All heuristic analysis records
                     </h2>
 
                     <!-- Search Input -->
@@ -206,7 +206,7 @@
                                     <th><i class="fa-solid fa-user"></i> User Account</th>
                                     <th style="width: 120px;"><i class="fa-solid fa-image"></i> Product Image</th>
                                     <th><i class="fa-solid fa-shield-halved"></i> AI Verdict</th>
-                                    <th><i class="fa-solid fa-chart-simple"></i> Confidence Score</th>
+                                    <th><i class="fa-solid fa-chart-simple"></i> Heuristic score (not probability)</th>
                                     <th><i class="fa-solid fa-clock"></i> Date & Timestamp</th>
                                     <th style="width: 110px;"><i class="fa-solid fa-gear"></i> Action</th>
                                 </tr>
@@ -243,7 +243,7 @@
                     <span>Counter<span class="logo-accent">Check</span></span>
                 </a>
                 <p class="footer-tagline">
-                    AI-Driven Counterfeit Product Identification & Verification Platform.
+                    Experimental product image-analysis prototype — not a verified counterfeit detector.
                 </p>
                 <div class="system-status-pill">
                     <span class="status-dot"></span>

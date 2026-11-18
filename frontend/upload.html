@@ -102,7 +102,7 @@
                     </h1>
 
                     <p class="section-subtitle">
-                        Upload a crisp image of the product or packaging. Our MobileNetV2 deep learning vision model will inspect high-frequency print & texture features to detect authenticity.
+                        Upload a clear product image. This experimental prototype evaluates image sharpness, contrast, and colour features, with generic ImageNet features when available. Its heuristic score does not verify product authenticity.
                     </p>
                 </div>
 
@@ -294,12 +294,12 @@
 
                             <div class="verdict-banner" id="verdictBanner">
                                 <i class="fa-solid" id="verdictIcon"></i>
-                                <span id="verdictText">Genuine Product Verified</span>
+                                <span id="verdictText">Experimental heuristic result</span>
                             </div>
 
                             <div class="result-metric-row">
                                 <div class="metric-item">
-                                    <span class="metric-label">Confidence Score</span>
+                                    <span class="metric-label">Heuristic score (not probability)</span>
                                     <span class="metric-value" id="resultConfidence">97.5%</span>
                                 </div>
                                 <div class="metric-item">
@@ -311,7 +311,7 @@
                             <div class="result-metric-row">
                                 <div class="metric-item">
                                     <span class="metric-label">AI Deep Learning Model</span>
-                                    <span class="metric-value" id="resultModel">MobileNetV2</span>
+                                    <span class="metric-value" id="resultModel">Image-feature heuristic (unvalidated)</span>
                                 </div>
                                 <div class="metric-item">
                                     <span class="metric-label">Timestamp</span>
@@ -359,11 +359,11 @@
                     <span>Counter<span class="logo-accent">Check</span></span>
                 </a>
                 <p class="footer-tagline">
-                    AI-Driven Counterfeit Product Identification & Verification Platform.
+                    Experimental product image-analysis prototype — not a verified counterfeit detector.
                 </p>
                 <div class="system-status-pill">
                     <span class="status-dot"></span>
-                    <span>All Systems Operational (Spring Boot 8081 & AI 5000)</span>
+                    <span>Demo services require separate configuration and availability</span>
                 </div>
             </div>
 
