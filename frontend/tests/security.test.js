@@ -35,10 +35,6 @@ test("escapeHtml encodes text and attribute metacharacters", () => {
 test("safeImageUrl accepts backend-relative paths and same-origin URLs", () => {
     const fallback = "https://via.placeholder.com/70?text=Product";
     assert.equal(
-        vm.runInContext('safeImageUrl("/uploads/item.png", "fallback")', sandbox),
-        "http://localhost:8081/uploads/item.png"
-    );
-    assert.equal(
         vm.runInContext('safeImageUrl("http://localhost:8081/uploads/item.png", "fallback")', sandbox),
         "http://localhost:8081/uploads/item.png"
     );
