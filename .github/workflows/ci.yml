@@ -22,6 +22,8 @@ jobs:
           node-version: '22'
       - name: Validate frontend JavaScript
         run: node --check frontend/js/script.js
+      - name: Run frontend security regression tests
+        run: node --test frontend/tests/security.test.js
 
   backend:
     name: Spring Boot build and tests
