@@ -366,7 +366,7 @@ function setupAnalysisForm() {
                     prediction: data.prediction,
                     confidence: data.confidence,
                     category: data.productCategory || category,
-                    model: data.modelUsed || "MobileNetV2 Transfer Learning",
+                    model: data.modelUsed || "Experimental image heuristic",
                     date: new Date(data.predictedAt || Date.now()).toLocaleString()
                 };
 
@@ -434,7 +434,7 @@ function renderInlineResult(result) {
         if (imgElem) {
             imgElem.onerror = function() {
                 this.onerror = null;
-                this.src = result.image || "https://via.placeholder.com/500x400?text=Product+Image";
+                this.src = safeImageUrl(result.image, "https://via.placeholder.com/500x400?text=Product+Image");
             };
             if (previewImage && previewImage.src && previewImage.src.length > 20) {
                 imgElem.src = safeImageUrl(previewImage.src, "https://via.placeholder.com/500x400?text=Product+Image");
@@ -461,7 +461,7 @@ function renderInlineResult(result) {
     });
 
     // Model Info
-    const formattedModel = result.model || "MobileNetV2 Transfer Learning";
+    const formattedModel = result.model || "Experimental image heuristic";
     ["resultModel", "modelInfo"].forEach(id => {
         const elem = document.getElementById(id);
         if (elem) elem.innerText = formattedModel;
@@ -477,11 +477,7 @@ function renderInlineResult(result) {
     // Details breakdown
     const detectionDetailsText = document.getElementById("detectionDetailsText");
     if (detectionDetailsText) {
-        if (isGenuine) {
-            detectionDetailsText.innerHTML = `<strong>Experimental heuristic result</strong><br>The prototype combines generic image-model output with image-quality heuristics. This is not a validated counterfeit classifier and does not verify product authenticity.`;
-        } else {
-            detectionDetailsText.innerHTML = `<strong>Experimental heuristic result</strong><br>The prototype combines generic image-model output with image-quality heuristics. This is not a validated counterfeit classifier and does not verify product authenticity.`;
-        }
+        detectionDetailsText.innerHTML = `<strong>Experimental heuristic result</strong><br>The prototype combines generic image-model output with image-quality heuristics. This is not a validated counterfeit classifier and does not verify product authenticity.`;
     }
 
     resultSection.style.display = "block";
@@ -578,7 +574,7 @@ function displayResult() {
     });
 
     // Model Info
-    const formattedModel = result.model || "MobileNetV2 Transfer Learning";
+    const formattedModel = result.model || "Experimental image heuristic";
     ["modelInfo", "resultModel"].forEach(id => {
         const elem = document.getElementById(id);
         if (elem) elem.innerText = formattedModel;
@@ -594,11 +590,7 @@ function displayResult() {
     // Breakdown Details
     const detectionDetailsText = document.getElementById("detectionDetailsText");
     if (detectionDetailsText) {
-        if (isGenuine) {
-            detectionDetailsText.innerHTML = `<strong>Experimental heuristic result</strong><br>The prototype combines generic image-model output with image-quality heuristics. This is not a validated counterfeit classifier and does not verify product authenticity.`;
-        } else {
-            detectionDetailsText.innerHTML = `<strong>Experimental heuristic result</strong><br>The prototype combines generic image-model output with image-quality heuristics. This is not a validated counterfeit classifier and does not verify product authenticity.`;
-        }
+        detectionDetailsText.innerHTML = `<strong>Experimental heuristic result</strong><br>The prototype combines generic image-model output with image-quality heuristics. This is not a validated counterfeit classifier and does not verify product authenticity.`;
     }
 }
 
