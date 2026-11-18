@@ -28,7 +28,7 @@ vm.createContext(sandbox);
 vm.runInContext(fs.readFileSync(scriptPath, "utf8"), sandbox, { filename: scriptPath });
 
 test("escapeHtml encodes text and attribute metacharacters", () => {
-    const escaped = vm.runInContext('escapeHtml("<script>alert(1)</script> & \"quoted\" \'single\'")', sandbox);
+    const escaped = vm.runInContext('escapeHtml("<script>alert(1)</script> & " + String.fromCharCode(34) + "quoted" + String.fromCharCode(34) + " " + String.fromCharCode(39) + "single" + String.fromCharCode(39))', sandbox);
     assert.equal(escaped, "&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;quoted&quot; &#39;single&#39;");
     assert.equal(
         vm.runInContext('escapeHtml("/uploads/" + String.fromCharCode(34) + " onerror=alert(1)")', sandbox),
