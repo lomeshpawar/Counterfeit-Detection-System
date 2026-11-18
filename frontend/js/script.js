@@ -44,6 +44,23 @@ function safeImageUrl(value, fallback) {
     return fallback;
 }
 
+function isSupportedImageFile(file) {
+    if (!file || typeof file.name !== "string") return false;
+
+    const extension = file.name.toLowerCase().match(/\.[^.]+$/)?.[0];
+    const supportedMimeTypes = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp"
+    };
+    const expectedMimeType = supportedMimeTypes[extension];
+    if (!expectedMimeType) return false;
+
+    const actualMimeType = typeof file.type === "string" ? file.type.toLowerCase() : "";
+    return !actualMimeType || actualMimeType === expectedMimeType;
+}
+
 function normalizePrediction(value) {
     const prediction = typeof value === "string" ? value.trim().toLowerCase() : "";
     if (prediction === "genuine") return "Genuine";
@@ -234,13 +251,10 @@ function setupImageUploadHandlers() {
 function handleSelectedFile(file) {
     if (!file) return;
 
-    // Validate file type (JPG, JPEG, PNG, WEBP)
-    const validExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
-    const fileName = file.name.toLowerCase();
-    const isValidType = validExtensions.some(ext => fileName.endsWith(ext)) || (file.type && file.type.startsWith('image/'));
-
-    if (!isValidType) {
-        alert("Invalid file format. Please upload a valid image file (JPG, JPEG, PNG, or WEBP).");
+    // Accept only the raster formats supported by the preview policy.
+    // This is a client-side convenience check; the backend must validate file content.
+    if (!isSupportedImageFile(file)) {
+        alert("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image with a matching MIME type.");
         resetSelectedFile();
         return;
     }
@@ -266,12 +280,23 @@ function handleSelectedFile(file) {
     
     const reader = new FileReader();
     reader.onload = function (event) {
+        const previewUrl = safeImageUrl(event && event.target ? event.target.result : "", "");
+        if (!previewUrl) {
+            alert("The selected file could not be previewed as a supported raster image.");
+            resetSelectedFile();
+            return;
+        }
+
         if (previewImage) {
-            previewImage.src = event.target.result;
+            previewImage.src = previewUrl;
         }
         if (imagePreview) {
             imagePreview.style.display = "block";
         }
+    };
+    reader.onerror = function () {
+        alert("The selected image could not be read. Please choose another file.");
+        resetSelectedFile();
     };
     reader.readAsDataURL(file);
 
