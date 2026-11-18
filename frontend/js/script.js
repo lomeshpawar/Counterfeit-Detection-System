@@ -417,12 +417,12 @@ function renderInlineResult(result) {
     const verdictText = document.getElementById("verdictText");
 
     if (verdictBanner && verdictText) {
-        verdictBanner.className = `verdict-banner ${isGenuine ? 'verdict-genuine' : 'verdict-counterfeit'}`;
+        verdictBanner.className = `verdict-banner ${isGenuine ? 'verdict-genuine' : isCounterfeit ? 'verdict-counterfeit' : ''}`;
         verdictText.innerText = isGenuine ? "Lower-risk image pattern" : isCounterfeit ? "Higher-risk image pattern" : "Unclassified image pattern";
     }
 
     if (verdictIcon) {
-        verdictIcon.className = `fa-solid ${isGenuine ? 'fa-shield-check' : 'fa-triangle-exclamation'}`;
+        verdictIcon.className = `fa-solid ${isGenuine ? 'fa-shield-check' : isCounterfeit ? 'fa-triangle-exclamation' : 'fa-circle-question'}`;
     }
 
     // Images
@@ -549,18 +549,18 @@ function displayResult() {
     const verdictText = document.getElementById("verdictText");
 
     if (verdictBanner && verdictText) {
-        verdictBanner.className = `verdict-banner ${isGenuine ? 'verdict-genuine' : 'verdict-counterfeit'}`;
+        verdictBanner.className = `verdict-banner ${isGenuine ? 'verdict-genuine' : isCounterfeit ? 'verdict-counterfeit' : ''}`;
         verdictText.innerText = isGenuine ? "Lower-risk image pattern" : isCounterfeit ? "Higher-risk image pattern" : "Unclassified image pattern";
     }
 
     if (verdictIcon) {
-        verdictIcon.className = `fa-solid ${isGenuine ? 'fa-shield-check' : 'fa-triangle-exclamation'}`;
+        verdictIcon.className = `fa-solid ${isGenuine ? 'fa-shield-check' : isCounterfeit ? 'fa-triangle-exclamation' : 'fa-circle-question'}`;
     }
 
     const predictionStatus = document.getElementById("predictionStatus");
     if (predictionStatus) {
         predictionStatus.innerText = isGenuine ? "Lower-risk pattern" : isCounterfeit ? "Higher-risk pattern" : "Unclassified";
-        predictionStatus.className = `prediction-status ${isGenuine ? 'genuine' : 'counterfeit'}`;
+        predictionStatus.className = `prediction-status ${isGenuine ? 'genuine' : isCounterfeit ? 'counterfeit' : ''}`;
     }
 
     // Confidence Score
