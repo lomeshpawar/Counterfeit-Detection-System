@@ -116,6 +116,15 @@ The workflow `.github/workflows/pages.yml` publishes `frontend/` as a static sit
 
 Run the checks from the repository root. They match the commands used by the current GitHub Actions workflows.
 
+**Frontend JavaScript (Node.js 22):**
+
+```bash
+node --check frontend/js/script.js
+node --test frontend/tests/security.test.js
+```
+
+The frontend suite checks input normalization, image URL/file allowlists, and focused guest-history/admin rendering cases. It is a Node-based regression harness, not a real-browser end-to-end test.
+
 **Java backend:**
 
 ```bash
