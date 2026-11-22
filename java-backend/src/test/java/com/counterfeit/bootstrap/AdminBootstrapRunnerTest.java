@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -111,13 +112,18 @@ class AdminBootstrapRunnerTest {
     }
 
     private AdminBootstrapRunner runner(boolean enabled, String name, String email, String password) {
+        MockEnvironment environment = new MockEnvironment();
+        if (password != null && !password.isEmpty()) {
+            environment.setProperty("app.admin-bootstrap.password", password);
+        }
+
         return new AdminBootstrapRunner(
                 userRepository,
                 passwordEncoder,
+                environment,
                 enabled,
                 name,
-                email,
-                password
+                email
         );
     }
 }
