@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,21 +29,25 @@ class AdminBootstrapRunnerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void doesNothingWhenBootstrapIsDisabled() {
-        AdminBootstrapRunner runner = runner(false, "", "", "");
+    void doesNothingWhenBootstrapIsDisabledOrReadThePassword() {
+        TrackingEnvironment environment = new TrackingEnvironment();
+        AdminBootstrapRunner runner = runner(false, "", "", environment);
 
         runner.run(null);
 
+        assertEquals(0, environment.passwordReads());
         verifyNoInteractions(userRepository, passwordEncoder);
     }
 
     @Test
-    void doesNotOverwriteAnExistingAdministrator() {
+    void doesNotOverwriteAnExistingAdministratorOrReadThePassword() {
         when(userRepository.countByRole("ADMIN")).thenReturn(1L);
-        AdminBootstrapRunner runner = runner(true, "", "", "");
+        TrackingEnvironment environment = new TrackingEnvironment();
+        AdminBootstrapRunner runner = runner(true, "", "", environment);
 
         runner.run(null);
 
+        assertEquals(0, environment.passwordReads());
         verify(userRepository).countByRole("ADMIN");
         verifyNoMoreInteractions(userRepository);
         verifyNoInteractions(passwordEncoder);
@@ -111,13 +116,38 @@ class AdminBootstrapRunnerTest {
     }
 
     private AdminBootstrapRunner runner(boolean enabled, String name, String email, String password) {
+        MockEnvironment environment = new MockEnvironment();
+        if (password != null && !password.isEmpty()) {
+            environment.setProperty("app.admin-bootstrap.password", password);
+        }
+        return runner(enabled, name, email, environment);
+    }
+
+    private AdminBootstrapRunner runner(
+            boolean enabled, String name, String email, MockEnvironment environment) {
         return new AdminBootstrapRunner(
                 userRepository,
                 passwordEncoder,
+                environment,
                 enabled,
                 name,
-                email,
-                password
+                email
         );
+    }
+
+    private static class TrackingEnvironment extends MockEnvironment {
+        private int passwordReads;
+
+        @Override
+        public String getProperty(String key) {
+            if ("app.admin-bootstrap.password".equals(key)) {
+                passwordReads++;
+            }
+            return super.getProperty(key);
+        }
+
+        int passwordReads() {
+            return passwordReads;
+        }
     }
 }
